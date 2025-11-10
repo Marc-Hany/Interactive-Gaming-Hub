@@ -1,0 +1,25 @@
+# Build and output folders
+/build/
+/bin/
+/obj/
+
+# Compiled files
+*.elf
+*.hex
+*.bin
+*.map
+*.o
+
+# Editor and system files
+.vscode/
+*.swp
+.DS_Store
+Thumbs.db
+
+# Eclipse IDE files
+.settings/
+.metadata/
+.project
+.cproject
+Debug/
+Release/
