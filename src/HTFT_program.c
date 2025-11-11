@@ -8,6 +8,8 @@
 #include "STD_TYPES.h"
 #include "BIT_MATH.h"
 
+#include <stdio.h>
+#include <stdlib.h>
 
 #include "SYSTICK_interface.h"
 #include "MGPIO_interface.h"
@@ -106,11 +108,13 @@ void HTFT_voidDisplayImage(const u16* Copy_u16ImageArr)
 
 }
 
-void HTFT_voidDrawShape(const u16* Copy_u16ImageArr,u8 Copy_u8StartX, u8 Copy_u8EndX, u8 Copy_StartY, u8 Copy_u8EndY)
+void HTFT_voidDrawShape(const u16* Copy_u16ImageArr,const u16* Copy_u16BckgArr,u8 Copy_u8StartX, u8 Copy_u8EndX, u8 Copy_u8StartY, u8 Copy_u8EndY)
 {
 	u8 Local_u8High;	//MSB of data u16
 	u8 Local_u8Low;		//LSB of data u16
-	u16 image_size =((Copy_u8EndX-Copy_u8StartX)*(Copy_u8EndY-Copy_StartY));
+	u16 color=0;
+	u16 width=(Copy_u8EndY-Copy_u8StartY);
+	u16 height=(Copy_u8EndX-Copy_u8StartX);
 	/*Set X Position*/
 	HTFT_voidSendCommand(0x2A);	//Set X Position
 	HTFT_voidSendData(0);		//Start Position
@@ -121,23 +125,39 @@ void HTFT_voidDrawShape(const u16* Copy_u16ImageArr,u8 Copy_u8StartX, u8 Copy_u8
 	/*Set Y Position*/
 	HTFT_voidSendCommand(0x2B);	//Set X Position
 	HTFT_voidSendData(0);		//Start Position
-	HTFT_voidSendData(Copy_StartY);		//Start Position
+	HTFT_voidSendData(Copy_u8StartY);		//Start Position
 	HTFT_voidSendData(0);		//End Position
 	HTFT_voidSendData(Copy_u8EndY);		//End Position
 
 	/*Send Data*/
 	HTFT_voidSendCommand(0x2C);
-	for(u16 i=0;i<image_size;i++)
+	for (u8 Y=Copy_u8StartY;Y<Copy_u8EndY;Y++)
 	{
-		Local_u8High=(u8)(Copy_u16ImageArr[i]>>8);
-		Local_u8Low =(u8)(Copy_u16ImageArr[i]);
-		if(Local_u8High==0xfd && Local_u8Low==0x7f)
+		for(u8 X=Copy_u8StartX;X<=Copy_u8EndX;X++)
 		{
-			continue;
+			u16 i = (Y*128)+X;
+			u16 k = abs((Y-Copy_u8StartY)*width)+abs(X-Copy_u8StartX);
+			Local_u8High=(u8)(Copy_u16ImageArr[k]>>8);
+			Local_u8Low =(u8)(Copy_u16ImageArr[k]);
+			color=(Local_u8High<<8) | Local_u8Low;
+			if(color==TRANSPARENT)
+			{
+				Local_u8High=(u8)(Copy_u16BckgArr[i]>>8);
+				Local_u8Low =(u8)(Copy_u16BckgArr[i]);
+				HTFT_voidSendData(Local_u8High);
+				HTFT_voidSendData(Local_u8Low);
+			}
+			else
+			{
+				HTFT_voidSendData(Local_u8High);
+				HTFT_voidSendData(Local_u8Low);
+			}
+
+
+
 		}
-		HTFT_voidSendData(Local_u8High);
-		HTFT_voidSendData(Local_u8Low);
 	}
+
 
 }
 

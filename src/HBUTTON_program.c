@@ -7,10 +7,12 @@
 #include "STD_TYPES.h"
 #include "BIT_MATH.h"
 
+
+#include "MEXTI_interface.h"
 #include "MGPIO_interface.h"
 #include "NVIC_interface.h"
 #include "SCB_interface.h"
-#include "MEXTI_interface.h"
+
 
 
 #include "HBUTTON_private.h"
