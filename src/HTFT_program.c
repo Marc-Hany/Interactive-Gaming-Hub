@@ -128,10 +128,10 @@ void HTFT_voidDrawShape(const u16* Copy_u16ImageArr,const u16* Copy_u16BckgArr,u
 	HTFT_voidSendData(Copy_u8StartY);		//Start Position
 	HTFT_voidSendData(0);		//End Position
 	HTFT_voidSendData(Copy_u8EndY);		//End Position
-
+	volatile u16 counter=0;
 	/*Send Data*/
 	HTFT_voidSendCommand(0x2C);
-	for (u8 Y=Copy_u8StartY;Y<Copy_u8EndY;Y++)
+	for (u8 Y=Copy_u8StartY;Y<=Copy_u8EndY;Y++)
 	{
 		for(u8 X=Copy_u8StartX;X<=Copy_u8EndX;X++)
 		{
@@ -144,19 +144,17 @@ void HTFT_voidDrawShape(const u16* Copy_u16ImageArr,const u16* Copy_u16BckgArr,u
 			{
 				Local_u8High=(u8)(Copy_u16BckgArr[i]>>8);
 				Local_u8Low =(u8)(Copy_u16BckgArr[i]);
-				HTFT_voidSendData(Local_u8High);
-				HTFT_voidSendData(Local_u8Low);
 			}
 			else
 			{
-				HTFT_voidSendData(Local_u8High);
-				HTFT_voidSendData(Local_u8Low);
+
 			}
-
-
-
+			HTFT_voidSendData(Local_u8High);
+			HTFT_voidSendData(Local_u8Low);
+			counter++;
 		}
 	}
+	counter=0;
 
 
 }

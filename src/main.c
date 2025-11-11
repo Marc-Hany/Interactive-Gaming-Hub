@@ -11,11 +11,11 @@
 #include "CTRLBUTTONS_interface.h"
 
 
-u8 Flag=0;
-u8 X_start=0;
-u8 X_end=50;
-u8 Y_start=0;
-u8 Y_end=50;
+u8 StartFlag=0;
+u8 X_start=48;
+u8 X_end=82;
+u8 Y_start=15;
+u8 Y_end=49;
 
 extern u8 Button_pressed;
 
@@ -44,56 +44,60 @@ void main(void)
 
 	CTRLBUTTONS_voidInit();
 	HTFT_voidInit();
-	HTFT_voidDisplayImage(Arr2);
-	HTFT_voidDrawShape(Cube3,Arr2,X_start,X_end,Y_start,Y_end);
+	HTFT_voidDisplayImage(Start);
 	while (1)
 	 {
 		switch(Button_pressed)
 		{
 		case UP:
-			X_start+=10;
-			X_end+=10;
-			if(X_end>=127)
+			if(StartFlag==1)
 			{
-				X_start=0;
-				X_end=50;
-				break;
+				if(Y_start==115 && Y_end==149)
+				{
+					break;
+				}
+				else
+				{
+					Y_start+=16;
+					Y_end+=16;
+					Button_pressed=NONE;
+					HTFT_voidDisplayImage(Game);
+					HTFT_voidDrawShape(Select_Box,Game,X_start,X_end,Y_start,Y_end);
+				}
 			}
-			Button_pressed=NONE;
-			HTFT_voidDisplayImage(Arr2);
-			HTFT_voidDrawShape(Cube3,Arr2,X_start,X_end,Y_start,Y_end);
 			break;
 		case DOWN:
-			X_start-=10;
-			X_end-=10;
-			if(X_start>=127)
+			if(StartFlag==1)
 			{
-				X_start=70;
-				X_end=120;
-				break;
+				if(Y_start==15 && Y_end==48)
+				{
+					break;
+				}
+				else
+				{
+					Y_start-=16;
+					Y_end-=16;
+					Button_pressed=NONE;
+					HTFT_voidDisplayImage(Game);
+					HTFT_voidDrawShape(Select_Box,Game,X_start,X_end,Y_start,Y_end);
+				}
 			}
-			Button_pressed=NONE;
-			HTFT_voidDisplayImage(Arr2);
-			HTFT_voidDrawShape(Cube3,Arr2,X_start,X_end,Y_start,Y_end);
 			break;
 		case RIGHT:
-			Y_start+=10;
-			Y_end+=10;
-			Button_pressed=NONE;
-			HTFT_voidDisplayImage(Arr2);
-			HTFT_voidDrawShape(Cube3,Arr2,X_start,X_end,Y_start,Y_end);
+
 			break;
 		case LEFT:
-			Y_start-=10;
-			Y_end-=10;
-			Button_pressed=NONE;
-			HTFT_voidDisplayImage(Arr2);
-			HTFT_voidDrawShape(Cube3,Arr2,X_start,X_end,Y_start,Y_end);
+
 			break;
 		case OK:
-			Button_pressed=NONE;
-			HTFT_voidDisplayImage(Arr2);
-			HTFT_voidDrawShape(Cube3,Arr2,X_start,X_end,Y_start,Y_end);
+			if(StartFlag==0)
+			{
+				Button_pressed=NONE;
+				HTFT_voidDisplayImage(Game);
+				HTFT_voidDrawShape(Select_Box,Game,X_start,X_end,Y_start,Y_end);
+				StartFlag=1;
+			}
+
 			break;
 		default:
 			break;
