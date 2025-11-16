@@ -42,6 +42,10 @@ void main(void)
 	MGPIO_voidSetPinMode(PORTA,PIN9,OUTPUT);
 	MGPIO_voidSetOutputConfig(PORTA,PIN9,PUSH_PULL,LOW_SPEED);
 
+	MGPIO_voidSetPinMode(PORTA,PIN0,OUTPUT);
+	MGPIO_voidSetOutputConfig(PORTA,PIN0,PUSH_PULL,LOW_SPEED);
+	TFT_CS_LOW();
+
 	CTRLBUTTONS_voidInit();
 	HTFT_voidInit();
 	HTFT_voidDisplayImage(Start);
@@ -58,8 +62,8 @@ void main(void)
 				}
 				else
 				{
-					Y_start+=16;
-					Y_end+=16;
+					Y_start+=50;
+					Y_end+=50;
 					Button_pressed=NONE;
 					HTFT_voidDisplayImage(Game);
 					HTFT_voidDrawShape(Select_Box,Game,X_start,X_end,Y_start,Y_end);
@@ -69,14 +73,14 @@ void main(void)
 		case DOWN:
 			if(StartFlag==1)
 			{
-				if(Y_start==15 && Y_end==48)
+				if(Y_start==15 && Y_end==49)
 				{
 					break;
 				}
 				else
 				{
-					Y_start-=16;
-					Y_end-=16;
+					Y_start-=50;
+					Y_end-=50;
 					Button_pressed=NONE;
 					HTFT_voidDisplayImage(Game);
 					HTFT_voidDrawShape(Select_Box,Game,X_start,X_end,Y_start,Y_end);

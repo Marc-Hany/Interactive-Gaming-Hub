@@ -113,8 +113,9 @@ void HTFT_voidDrawShape(const u16* Copy_u16ImageArr,const u16* Copy_u16BckgArr,u
 	u8 Local_u8High;	//MSB of data u16
 	u8 Local_u8Low;		//LSB of data u16
 	u16 color=0;
-	u16 width=(Copy_u8EndY-Copy_u8StartY);
-	u16 height=(Copy_u8EndX-Copy_u8StartX);
+	u16 width =(Copy_u8EndX-Copy_u8StartX)+1;
+	u16 height=(Copy_u8EndY-Copy_u8StartY)+1;
+
 	/*Set X Position*/
 	HTFT_voidSendCommand(0x2A);	//Set X Position
 	HTFT_voidSendData(0);		//Start Position
@@ -128,25 +129,31 @@ void HTFT_voidDrawShape(const u16* Copy_u16ImageArr,const u16* Copy_u16BckgArr,u
 	HTFT_voidSendData(Copy_u8StartY);		//Start Position
 	HTFT_voidSendData(0);		//End Position
 	HTFT_voidSendData(Copy_u8EndY);		//End Position
+
+	/*Global Position*/
+	volatile u8 X_global;
+	volatile u8 Y_global;
+	volatile u16 Global_Index;
+	volatile u16 Local_Index;
 	volatile u16 counter=0;
+
 	/*Send Data*/
 	HTFT_voidSendCommand(0x2C);
-	for (u8 Y=Copy_u8StartY;Y<=Copy_u8EndY;Y++)
+	for(u8 Y=0;Y<height;Y++)
 	{
-		for(u8 X=Copy_u8StartX;X<=Copy_u8EndX;X++)
+		for(u8 X=0;X<width;X++)
 		{
-			u16 i = (Y*128)+X;
-			u16 k = abs((Y-Copy_u8StartY)*width)+abs(X-Copy_u8StartX);
-			Local_u8High=(u8)(Copy_u16ImageArr[k]>>8);
-			Local_u8Low =(u8)(Copy_u16ImageArr[k]);
+			Local_Index=(width*Y)+X;
+			Local_u8High=(u8)(Copy_u16ImageArr[Local_Index]>>8);
+			Local_u8Low =(u8)(Copy_u16ImageArr[Local_Index]);
 			color=(Local_u8High<<8) | Local_u8Low;
-			if(color==TRANSPARENT)
+			if(color == TRANSPARENT)
 			{
-				Local_u8High=(u8)(Copy_u16BckgArr[i]>>8);
-				Local_u8Low =(u8)(Copy_u16BckgArr[i]);
-			}
-			else
-			{
+				X_global=Copy_u8StartX+X;
+				Y_global=Copy_u8StartY+Y;
+				Global_Index=(Y_global*128)+X_global;
+				Local_u8High=(u8)(Copy_u16BckgArr[Global_Index]>>8);
+				Local_u8Low =(u8)(Copy_u16BckgArr[Global_Index]);
 
 			}
 			HTFT_voidSendData(Local_u8High);
@@ -154,6 +161,29 @@ void HTFT_voidDrawShape(const u16* Copy_u16ImageArr,const u16* Copy_u16BckgArr,u
 			counter++;
 		}
 	}
+
+//	for (u8 Y=Copy_u8StartY;Y<=Copy_u8EndY;Y++)
+//	{
+//		for(u8 X=Copy_u8StartX;X<=Copy_u8EndX;X++)
+//		{
+//			u16 i = (Y*128)+X;
+//			u16 k = abs((Y-Copy_u8StartY)*width)+abs(X-Copy_u8StartX);
+//
+//			color=(Local_u8High<<8) | Local_u8Low;
+//			if(color==TRANSPARENT)
+//			{
+//				Local_u8High=(u8)(Copy_u16BckgArr[i]>>8);
+//				Local_u8Low =(u8)(Copy_u16BckgArr[i]);
+//			}
+//			else
+//			{
+//
+//			}
+//			HTFT_voidSendData(Local_u8High);
+//			HTFT_voidSendData(Local_u8Low);
+//			counter++;
+//		}
+//	}
 	counter=0;
 
 

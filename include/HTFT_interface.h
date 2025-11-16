@@ -13,6 +13,8 @@
 #define HTFT_666	0x06
 
 #define TRANSPARENT	0xfd7f
+#define TFT_CS_HIGH() MGPIO_voidSetPinValue(PORTA,PIN0,PIN_HIGH)
+#define TFT_CS_LOW()  MGPIO_voidSetPinValue(PORTA,PIN0,PIN_LOW)
 
 void HTFT_voidInit(void);
 void HTFT_voidSendData(u8 Copy_u8Data);
