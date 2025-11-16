@@ -9,6 +9,7 @@
 #include "HTFT_interface.h"
 #include "HBUTTON_interface.h"
 #include "CTRLBUTTONS_interface.h"
+#include "HSD_interface.h"
 
 
 u8 StartFlag=0;
@@ -17,8 +18,8 @@ u8 X_end=82;
 u8 Y_start=15;
 u8 Y_end=49;
 
-extern u8 Button_pressed;
-
+u8 Buffer[2560]={0};
+u16 BufferPixel[1280]={0};
 void main(void)
 {
 	MRCC_voidInit();
@@ -44,70 +45,23 @@ void main(void)
 
 	MGPIO_voidSetPinMode(PORTA,PIN0,OUTPUT);
 	MGPIO_voidSetOutputConfig(PORTA,PIN0,PUSH_PULL,LOW_SPEED);
-	TFT_CS_LOW();
 
-	CTRLBUTTONS_voidInit();
+	MSPI_voidMasterInit();
+	HSD_u8Init();
+	HSD_voidReadBlocks(0,Buffer,5);
+
 	HTFT_voidInit();
 	HTFT_voidDisplayImage(Start);
+	for(u16 i=0;i<2560;i+=2)
+	{
+		BufferPixel[i/2]= (Buffer[i+1] << 8) | Buffer[i];
+	}
+	HTFT_voidDrawShape(BufferPixel,Start,X_start,X_end,Y_start,Y_end);
+	MGPIO_voidSetPinMode(PORTA,PIN9,OUTPUT);
 	while (1)
-	 {
-		switch(Button_pressed)
-		{
-		case UP:
-			if(StartFlag==1)
-			{
-				if(Y_start==115 && Y_end==149)
-				{
-					break;
-				}
-				else
-				{
-					Y_start+=50;
-					Y_end+=50;
-					Button_pressed=NONE;
-					HTFT_voidDisplayImage(Game);
-					HTFT_voidDrawShape(Select_Box,Game,X_start,X_end,Y_start,Y_end);
-				}
-			}
-			break;
-		case DOWN:
-			if(StartFlag==1)
-			{
-				if(Y_start==15 && Y_end==49)
-				{
-					break;
-				}
-				else
-				{
-					Y_start-=50;
-					Y_end-=50;
-					Button_pressed=NONE;
-					HTFT_voidDisplayImage(Game);
-					HTFT_voidDrawShape(Select_Box,Game,X_start,X_end,Y_start,Y_end);
-				}
-			}
-			break;
-		case RIGHT:
+	{
 
-			break;
-		case LEFT:
-
-			break;
-		case OK:
-			if(StartFlag==0)
-			{
-				Button_pressed=NONE;
-				HTFT_voidDisplayImage(Game);
-				HTFT_voidDrawShape(Select_Box,Game,X_start,X_end,Y_start,Y_end);
-				StartFlag=1;
-			}
-
-			break;
-		default:
-			break;
-		}
-
-	 }
+	}
 }
 
 
