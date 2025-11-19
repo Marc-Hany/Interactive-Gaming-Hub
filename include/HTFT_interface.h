@@ -1,3 +1,4 @@
+
 /*
  * HTFT_interface.h
  *
@@ -13,6 +14,7 @@
 #define HTFT_666	0x06
 
 #define TRANSPARENT	0xfd7f
+
 
 void HTFT_voidInit(void);
 void HTFT_voidSendData(u8 Copy_u8Data);
