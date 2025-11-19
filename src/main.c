@@ -5,19 +5,10 @@
 #include "MGPIO_interface.h"
 #include "MSPI_interface.h"
 #include "SYSTICK_interface.h"
-#include "HTFT_image.h"
 #include "HTFT_interface.h"
 #include "HBUTTON_interface.h"
 #include "CTRLBUTTONS_interface.h"
-
-
-u8 StartFlag=0;
-u8 X_start=48;
-u8 X_end=82;
-u8 Y_start=15;
-u8 Y_end=49;
-extern u8 Button_pressed;
-
+#include "MAINMENU_interface.h"
 
 void main(void)
 {
@@ -46,63 +37,13 @@ void main(void)
 	SYSTICK_voidStart(1000);
 	CTRLBUTTONS_voidInit();
 	MSPI_voidMasterInit();
-
-
 	HTFT_voidInit();
-	HTFT_voidDisplayImage(Start);
+	MAINMENU_voidInit();
+	OS_u8CreateTask(MAIMENU_voidButtonNavigation,5,0,0);
+	OS_voidStartScheduler(1000);
 	while (1)
 	 {
-		switch(Button_pressed)
-		{
-		case UP:
-			if(StartFlag==1)
-			{
-				if(Y_start==115 && Y_end==149)
-				{
-					break;
-				}
-				else
-				{
-					Y_start+=50;
-					Y_end+=50;
-					Button_pressed=NONE;
-					HTFT_voidDisplayImage(Game);
-					HTFT_voidDrawShape(Select_Box,Game,X_start,X_end,Y_start,Y_end);
-				}
-			}
-			break;
-		case DOWN:
-			if(StartFlag==1)
-			{
-				if(Y_start==15 && Y_end==49)
-				{
-					break;
-				}
-				else
-				{
-					Y_start-=50;
-					Y_end-=50;
-					Button_pressed=NONE;
-					HTFT_voidDisplayImage(Game);
-					HTFT_voidDrawShape(Select_Box,Game,X_start,X_end,Y_start,Y_end);
-				}
-			}
-			break;
-		case RIGHT:
-			break;
-		case LEFT:
-			break;
-		case OK:
-			if(StartFlag==0)
-			{
-				Button_pressed=NONE;
-				HTFT_voidDisplayImage(Game);
-				HTFT_voidDrawShape(Select_Box,Game,X_start,X_end,Y_start,Y_end);
-				StartFlag=1;
-			}
-		}
 
 	 }
 }
-
 

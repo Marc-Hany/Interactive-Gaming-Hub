@@ -27,59 +27,59 @@ void CTRLBUTTONS_voidInit(void)
 CTRL_BUTTONS UP_Callback(void)
 {
 	u32 now=SYSTICK_u32GetElapsedTime();
-//	if(now-lastPressTime>20)
-//	{
-//		Button_pressed=UP;
-//		lastPressTime = now;
-//	}
-	Button_pressed=UP;
+	if(now-lastPressTime>20)
+	{
+		Button_pressed=UP;
+		lastPressTime = now;
+	}
+//	Button_pressed=UP;
 	return Button_pressed;
 }
 
 CTRL_BUTTONS DOWN_Callback(void)
 {
 	u32 now=SYSTICK_u32GetElapsedTime();
-//	if(now-lastPressTime>20)
-//	{
-//		Button_pressed=DOWN;
-//		lastPressTime = now;
-//	}
-	Button_pressed=DOWN;
+	if(now-lastPressTime>20)
+	{
+		Button_pressed=DOWN;
+		lastPressTime = now;
+	}
+//	Button_pressed=DOWN;
 	return Button_pressed;
 }
 
 CTRL_BUTTONS RIGHT_Callback(void)
 {
 	u32 now=SYSTICK_u32GetElapsedTime();
-//	if(now-lastPressTime>20)
-//	{
-//		Button_pressed=RIGHT;
-//		lastPressTime = now;
-//	}
-	Button_pressed=RIGHT;
+	if(now-lastPressTime>20)
+	{
+		Button_pressed=RIGHT;
+		lastPressTime = now;
+	}
+//	Button_pressed=RIGHT;
 	return Button_pressed;
 }
 
 CTRL_BUTTONS LEFT_Callback(void)
 {
 	u32 now=SYSTICK_u32GetElapsedTime();
-//	if(now-lastPressTime>20)
-//	{
-//		Button_pressed=LEFT;
-//		lastPressTime = now;
-//	}
-	Button_pressed=LEFT;
+	if(now-lastPressTime>20)
+	{
+		Button_pressed=LEFT;
+		lastPressTime = now;
+	}
+//	Button_pressed=LEFT;
 	return Button_pressed;
 }
 
 CTRL_BUTTONS OK_Callback(void)
 {
 	u32 now=SYSTICK_u32GetElapsedTime();
-//	if(now-lastPressTime>20)
-//	{
-//		Button_pressed=OK;
-//		lastPressTime = now;
-//	}
-	Button_pressed=OK;
+	if(now-lastPressTime>20)
+	{
+		Button_pressed=OK;
+		lastPressTime = now;
+	}
+//	Button_pressed=OK;
 	return Button_pressed;
 }

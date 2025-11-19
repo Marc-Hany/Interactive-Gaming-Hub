@@ -12,6 +12,8 @@
 #include "SYSTICK_interface.h"
 #include "SYSTICK_private.h"
 
+static void(*Global_pvFuncPtr)(void)=NULL;
+
 void SYSTCICK_voidInit(void)
 {
 	#if SYSTICK_CLOCK_SOURCE==AHB_CLOCK_SOURCE
@@ -26,15 +28,14 @@ void SYSTCICK_voidInit(void)
 }
 void SYSTICK_voidConfigInterruptState(INTERRUPT_STATE Copy_uddtState)
 {
-	#if Copy_uddtState==INT_DISABLE
+	if (Copy_uddtState==INT_DISABLE)
 	{
 		CLR_BIT(SYSTICK->STK_CTRL,CTRL_TICKINT);
 	}
-	#elif Copy_uddtState==INT_ENABLE
+	else if( Copy_uddtState==INT_ENABLE)
 	{
 		SET_BIT(SYSTICK->STK_CTRL,CTRL_TICKINT);
 	}
-	#endif
 }
 void SYSTICK_voidStart(u32 Copy_u32TicksValue)
 {
@@ -65,4 +66,16 @@ u32 SYSTICK_u32GetRemainingTime()
 	return (SYSTICK->STK_VAL);
 }
 
+void SYSTICK_SetCallback(void(*Copy_pvFunc)(void),u32 Copy_u32Periodicity_us)
+{
+	Global_pvFuncPtr=Copy_pvFunc;
+	SYSTICK_voidStart(Copy_u32Periodicity_us*2);
+}
 
+void SysTick_Handler(void)
+{
+	if(Global_pvFuncPtr!=NULL)
+	{
+		Global_pvFuncPtr();
+	}
+}

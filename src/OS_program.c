@@ -7,15 +7,13 @@
 #include "STD_TYPES.h"
 #include "BIT_MATH.h"
 
+#include "SYSTICK_interface.h"
+
 #include "OS_private.h"
 #include "OS_interface.h"
 #include "OS_config.h"
 
-#include "CTRLBUTTONS_interface.h"
 
-
-
-#include "SYSTICK_interface.h"
 
 TASK_t System_Tasks[TASKS_NUM]={{0}};
 

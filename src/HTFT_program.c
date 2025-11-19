@@ -112,27 +112,33 @@ void HTFT_voidDisplayImage(const u16* Copy_u16ImageArr)
 	}
 }
 
-void HTFT_voidDrawShape(const u16* Copy_u16ImageArr,const u16* Copy_u16BckgArr,u8 Copy_u8StartX, u8 Copy_u8EndX, u8 Copy_u8StartY, u8 Copy_u8EndY)
+void HTFT_voidDrawShape(Sprite_t Sprite,const u16* Copy_u16BckgArr)
 {
+	u8  Local_u8StartX=Sprite.X_start;
+	u8  Local_u8EndX  =Sprite.X_end;
+	u8  Local_u8StartY=Sprite.Y_start;
+	u8  Local_u8EndY  =Sprite.Y_end;
+	const u16* Local_u16ImageArr=Sprite.Copy_u16ImageArr;
+
 	u8 Local_u8High;	//MSB of data u16
 	u8 Local_u8Low;		//LSB of data u16
 	u16 color=0;
-	u16 width =(Copy_u8EndX-Copy_u8StartX)+1;
-	u16 height=(Copy_u8EndY-Copy_u8StartY)+1;
+	u16 width =(Local_u8EndX-Local_u8StartX)+1;
+	u16 height=(Local_u8EndY-Local_u8StartY)+1;
 
 	/*Set X Position*/
 	HTFT_voidSendCommand(0x2A);	//Set X Position
 	HTFT_voidSendData(0);		//Start Position
-	HTFT_voidSendData(Copy_u8StartX);		//Start Position
+	HTFT_voidSendData(Local_u8StartX);		//Start Position
 	HTFT_voidSendData(0);		//End Position
-	HTFT_voidSendData(Copy_u8EndX);		//End Position
+	HTFT_voidSendData(Local_u8EndX);		//End Position
 
 	/*Set Y Position*/
 	HTFT_voidSendCommand(0x2B);	//Set X Position
 	HTFT_voidSendData(0);		//Start Position
-	HTFT_voidSendData(Copy_u8StartY);		//Start Position
+	HTFT_voidSendData(Local_u8StartY);		//Start Position
 	HTFT_voidSendData(0);		//End Position
-	HTFT_voidSendData(Copy_u8EndY);		//End Position
+	HTFT_voidSendData(Local_u8EndY);		//End Position
 
 	/*Global Position*/
 	volatile u8 X_global;
@@ -148,13 +154,13 @@ void HTFT_voidDrawShape(const u16* Copy_u16ImageArr,const u16* Copy_u16BckgArr,u
 		for(u8 X=0;X<width;X++)
 		{
 			Local_Index=(width*Y)+X;
-			Local_u8High=(u8)(Copy_u16ImageArr[Local_Index]>>8);
-			Local_u8Low =(u8)(Copy_u16ImageArr[Local_Index]);
+			Local_u8High=(u8)(Local_u16ImageArr[Local_Index]>>8);
+			Local_u8Low =(u8)(Local_u16ImageArr[Local_Index]);
 			color=(Local_u8High<<8) | Local_u8Low;
 			if(color == TRANSPARENT)
 			{
-				X_global=Copy_u8StartX+X;
-				Y_global=Copy_u8StartY+Y;
+				X_global=Local_u8StartX+X;
+				Y_global=Local_u8StartY+Y;
 				Global_Index=(Y_global*128)+X_global;
 				Local_u8High=(u8)(Copy_u16BckgArr[Global_Index]>>8);
 				Local_u8Low =(u8)(Copy_u16BckgArr[Global_Index]);
