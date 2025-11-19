@@ -5,11 +5,11 @@
 #include "MGPIO_interface.h"
 #include "MSPI_interface.h"
 #include "SYSTICK_interface.h"
-#include "HTFT_image.h"
 #include "HTFT_interface.h"
 #include "HBUTTON_interface.h"
 #include "CTRLBUTTONS_interface.h"
 #include "HSD_interface.h"
+#include "Assets.h"
 
 
 u8 StartFlag=0;
@@ -18,8 +18,6 @@ u8 X_end=82;
 u8 Y_start=15;
 u8 Y_end=49;
 
-u8 Buffer[2560]={0};
-u16 BufferPixel[1280]={0};
 void main(void)
 {
 	MRCC_voidInit();
@@ -46,18 +44,21 @@ void main(void)
 	MGPIO_voidSetPinMode(PORTA,PIN0,OUTPUT);
 	MGPIO_voidSetOutputConfig(PORTA,PIN0,PUSH_PULL,LOW_SPEED);
 
+	HTFT_voisCSHigh();
 	MSPI_voidMasterInit();
-	HSD_u8Init();
-	HSD_voidReadBlocks(0,Buffer,5);
-
-	HTFT_voidInit();
-	HTFT_voidDisplayImage(Start);
-	for(u16 i=0;i<2560;i+=2)
+	volatile u8 sd_init=HSD_u8Init();
+	volatile u8 write_chec2k;
+	u8 block[512];
+	for(u16 i=0;i<512;i++)
 	{
-		BufferPixel[i/2]= (Buffer[i+1] << 8) | Buffer[i];
+		block[i]=Background[i];
 	}
-	HTFT_voidDrawShape(BufferPixel,Start,X_start,X_end,Y_start,Y_end);
-	MGPIO_voidSetPinMode(PORTA,PIN9,OUTPUT);
+	write_chec2k=HSD_u8WriteBlock(0x00000000,block);
+
+	HSD_voidReadBlock(0x00000000,block);
+
+
+	MGPIO_voidSetPinMode(PORTA,PIN0,OUTPUT);
 	while (1)
 	{
 
