@@ -13,14 +13,14 @@
 #define HTFT_666	0x06
 
 #define TRANSPARENT	0xfd7f
-#define TFT_CS_HIGH() MGPIO_voidSetPinValue(HTFT_PORT,HTFT_CS,PIN_HIGH)
-#define TFT_CS_LOW()  MGPIO_voidSetPinValue(HTFT_PORT,HTFT_CS,PIN_LOW)
 
+void HTFT_voisCSLow(void);
+void HTFT_voisCSHigh(void);
 void HTFT_voidInit(void);
 void HTFT_voidSendData(u8 Copy_u8Data);
 void HTFT_voidSendCommand(u8 Copy_u8Command);
-void HTFT_voidDisplayImage(const u16* Copy_u16ImageArr);
-void HTFT_voidDrawShape(const u16* Copy_u16ImageArr,const u16* Copy_u16BckgArr,u8 Copy_u8StartX, u8 Copy_u8EndX, u8 Copy_StartY, u8 Copy_u8EndY);
+void HTFT_voidDisplayImage(const u8* Copy_u16ImageArr);
+void HTFT_voidDrawShape(const u16* Copy_u16ImageArr,const u8* Copy_u16BckgArr,u8 Copy_u8StartX, u8 Copy_u8EndX, u8 Copy_StartY, u8 Copy_u8EndY);
 void HTFT_voidSDDrawShape(const u16* Copy_u16BckgArr,
                           u8 Copy_u8StartX,
                           u8 Copy_u8StartY,

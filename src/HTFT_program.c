@@ -13,16 +13,25 @@
 
 #include "SYSTICK_interface.h"
 #include "MGPIO_interface.h"
-#include "MSPI_interface.h"
-#include "HSD_interface.h"
-
 #include "HTFT_private.h"
 #include "HTFT_config.h"
 #include "HTFT_interface.h"
+#include "MSPI_interface.h"
+#include "HSD_interface.h"
+
+
+void HTFT_voisCSLow(void)
+{
+	MGPIO_voidSetPinValue(HTFT_PORT,HTFT_CS,PIN_LOW);
+}
+
+void HTFT_voisCSHigh(void)
+{
+	MGPIO_voidSetPinValue(HTFT_PORT,HTFT_CS,PIN_HIGH);
+}
 
 void HTFT_voidInit(void)
 {
-	TFT_CS_LOW();
 	/*Initialize Reset Pin*/
 	MGPIO_voidSetPinMode(HTFT_PORT,HTFT_RST,OUTPUT);
 	MGPIO_voidSetOutputConfig(HTFT_PORT,HTFT_RST,PUSH_PULL,LOW_SPEED);
@@ -63,32 +72,26 @@ void HTFT_voidInit(void)
 
 	/*Display ON*/
 	HTFT_voidSendCommand(0x029);
-	TFT_CS_HIGH();
 }
 void HTFT_voidSendData(u8 Copy_u8Data)
 {
-	TFT_CS_LOW();
 	/*Control Pin High*/
 	MGPIO_voidSetPinValue(HTFT_PORT,HTFT_A0,PIN_HIGH);
 
 	/*Send Data Using SPI*/
 	MSPI_u8Transceive(Copy_u8Data);
-	TFT_CS_HIGH();
 }
 void HTFT_voidSendCommand(u8 Copy_u8Command)
 {
-	TFT_CS_LOW();
 	/*Control Pin Low*/
 	MGPIO_voidSetPinValue(HTFT_PORT,HTFT_A0,PIN_LOW);
 
 	/*Send Data Using SPI*/
 	MSPI_u8Transceive(Copy_u8Command);
 	MGPIO_voidSetPinValue(HTFT_PORT,PIN8,PIN_HIGH);
-	TFT_CS_HIGH();
 }
-void HTFT_voidDisplayImage(const u16* Copy_u16ImageArr)
+void HTFT_voidDisplayImage(const u8* Copy_u16ImageArr)
 {
-	TFT_CS_LOW();
 	u8 Local_u8High;	//MSB of data u16
 	u8 Local_u8Low;		//LSB of data u16
 
@@ -109,19 +112,17 @@ void HTFT_voidDisplayImage(const u16* Copy_u16ImageArr)
 	/*Send Data*/
 	HTFT_voidSendCommand(0x2C);
 
-	for(u16 i=0;i<20480;i++)
+	for(u16 i=0;i<40960;i+=2)
 	{
-		Local_u8High=(u8)(Copy_u16ImageArr[i]>>8);
-		Local_u8Low =(u8)(Copy_u16ImageArr[i]);
+		Local_u8High=(u8)(Copy_u16ImageArr[i]);
+		Local_u8Low =(u8)(Copy_u16ImageArr[i+1]);
 		HTFT_voidSendData(Local_u8High);
 		HTFT_voidSendData(Local_u8Low);
 	}
-	TFT_CS_HIGH();
 }
 
-void HTFT_voidDrawShape(const u16* Copy_u16ImageArr,const u16* Copy_u16BckgArr,u8 Copy_u8StartX, u8 Copy_u8EndX, u8 Copy_u8StartY, u8 Copy_u8EndY)
+void HTFT_voidDrawShape(const u16* Copy_u16ImageArr,const u8* Copy_u16BckgArr,u8 Copy_u8StartX, u8 Copy_u8EndX, u8 Copy_u8StartY, u8 Copy_u8EndY)
 {
-	TFT_CS_LOW();
 	u8 Local_u8High;	//MSB of data u16
 	u8 Local_u8Low;		//LSB of data u16
 	u16 color=0;
@@ -153,10 +154,10 @@ void HTFT_voidDrawShape(const u16* Copy_u16ImageArr,const u16* Copy_u16BckgArr,u
 	HTFT_voidSendCommand(0x2C);
 	for(u8 Y=0;Y<height;Y++)
 	{
-		for(u8 X=0;X<width;X++)
+		for(u8 X=0;X<width;X+=2)
 		{
 			Local_Index=(width*Y)+X;
-			Local_u8High=(u8)(Copy_u16ImageArr[Local_Index]>>8);
+			Local_u8High=(u8)(Copy_u16ImageArr[Local_Index]<<8);
 			Local_u8Low =(u8)(Copy_u16ImageArr[Local_Index]);
 			color=(Local_u8High<<8) | Local_u8Low;
 			if(color == TRANSPARENT)
@@ -164,8 +165,8 @@ void HTFT_voidDrawShape(const u16* Copy_u16ImageArr,const u16* Copy_u16BckgArr,u
 				X_global=Copy_u8StartX+X;
 				Y_global=Copy_u8StartY+Y;
 				Global_Index=(Y_global*128)+X_global;
-				Local_u8High=(u8)(Copy_u16BckgArr[Global_Index]>>8);
-				Local_u8Low =(u8)(Copy_u16BckgArr[Global_Index]);
+				Local_u8High=(u8)(Copy_u16BckgArr[Global_Index]);
+				Local_u8Low =(u8)(Copy_u16BckgArr[Global_Index+1]);
 
 			}
 			HTFT_voidSendData(Local_u8High);
@@ -174,7 +175,6 @@ void HTFT_voidDrawShape(const u16* Copy_u16ImageArr,const u16* Copy_u16BckgArr,u
 		}
 	}
 	counter=0;
-	TFT_CS_HIGH();
 }
 
 void HTFT_voidSDDrawShape(const u16* Copy_u16BckgArr,
