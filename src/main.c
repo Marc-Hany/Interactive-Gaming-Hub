@@ -9,6 +9,10 @@
 #include "HBUTTON_interface.h"
 #include "CTRLBUTTONS_interface.h"
 #include "MAINMENU_interface.h"
+#include "NVIC_interface.h"
+#include "HLEDMATRIX_interface.h"
+#include "MTIM2_interface.h"
+
 
 void main(void)
 {
@@ -18,6 +22,8 @@ void main(void)
 
 	MRCC_voidPeripheralEnable(APB2,SPI1EN);
 	MRCC_voidPeripheralEnable(APB2,SYSCFGEN);	//Enable SYSCFG
+
+	MRCC_voidPeripheralEnable(APB1,TIM2EN);
 
 	MGPIO_voidSetPinMode(PORTA,PIN4,ALTERNATE_FUNC);
 	MGPIO_voidSetAlternatFuncConfig(PORTA,PIN4,AF5); //SS
@@ -34,16 +40,19 @@ void main(void)
 	MGPIO_voidSetPinMode(PORTA,PIN9,OUTPUT);
 	MGPIO_voidSetOutputConfig(PORTA,PIN9,PUSH_PULL,LOW_SPEED);
 
+	NVIC_voidEnable(TIM2);
+
 	SYSTICK_voidStart(1000);
 	CTRLBUTTONS_voidInit();
 	MSPI_voidMasterInit();
 	HTFT_voidInit();
 	MAINMENU_voidInit();
-	OS_u8CreateTask(MAIMENU_voidButtonNavigation,5,0,0);
-	OS_voidStartScheduler(1000);
+	HLEDMATRIX_voidInitSTP();
+	MTIM2_voidStart_us(500,HLEDMATRIX_OS);
+	OS_u8CreateTask(MAINMENU_voidButtonNavigation,5,0,0);
+	OS_voidStartScheduler(500);
 	while (1)
 	 {
 
 	 }
 }
-

@@ -7,9 +7,13 @@
 #include "STD_TYPES.h"
 #include "BIT_MATH.h"
 
+
+#include "MAINMENU_interface.h"
 #include "HTFT_image.h"
 #include "HTFT_interface.h"
 #include "CTRLBUTTONS_interface.h"
+
+
 
 extern u8 Button_pressed;
 Sprite_t SelectBox=
@@ -54,7 +58,7 @@ void MAINMENU_voidInit(void)
 	HTFT_voidDrawShape(SelectBox,Start);
 }
 
-void MAIMENU_voidButtonNavigation(void)
+void MAINMENU_voidButtonNavigation(void)
 {
 	switch(Button_pressed)
 	{

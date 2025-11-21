@@ -9,7 +9,7 @@
 #define MAINMENU_INTERFACE_H_
 
 void MAINMENU_voidInit(void);
-void MAIMENU_voidButtonNavigation(void);
+void MAINMENU_voidButtonNavigation(void);
 
 
 
