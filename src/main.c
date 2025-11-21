@@ -9,9 +9,11 @@
 #include "HBUTTON_interface.h"
 #include "CTRLBUTTONS_interface.h"
 #include "MAINMENU_interface.h"
+#include "OS_interface.h"
 #include "NVIC_interface.h"
 #include "HLEDMATRIX_interface.h"
 #include "MTIM2_interface.h"
+#include "GAME1_interface.h"
 
 
 void main(void)
@@ -50,6 +52,10 @@ void main(void)
 	HLEDMATRIX_voidInitSTP();
 	MTIM2_voidStart_us(500,HLEDMATRIX_OS);
 	OS_u8CreateTask(MAINMENU_voidButtonNavigation,5,0,0);
+	OS_u8CreateTask(GAME1_voidGameStart,1,1,0);
+	OS_u8CreateTask(GAME1_voidGame1Navigation,5,2,0);
+	OS_voidTaskSuspend(1);
+	OS_voidTaskSuspend(2);
 	OS_voidStartScheduler(500);
 	while (1)
 	 {

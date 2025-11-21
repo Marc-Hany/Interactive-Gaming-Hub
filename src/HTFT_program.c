@@ -81,7 +81,7 @@ void HTFT_voidSendCommand(u8 Copy_u8Command)
 	MSPI_u8Transceive(Copy_u8Command);
 	MGPIO_voidSetPinValue(HTFT_PORT,PIN8,PIN_HIGH);
 }
-void HTFT_voidDisplayImage(const u16* Copy_u16ImageArr)
+void HTFT_voidDisplayImage(u16* Copy_u16ImageArr)
 {
 	u8 Local_u8High;	//MSB of data u16
 	u8 Local_u8Low;		//LSB of data u16
@@ -145,7 +145,6 @@ void HTFT_voidDrawShape(Sprite_t Sprite,const u16* Copy_u16BckgArr)
 	volatile u8 Y_global;
 	volatile u16 Global_Index;
 	volatile u16 Local_Index;
-	volatile u16 counter=0;
 
 	/*Send Data*/
 	HTFT_voidSendCommand(0x2C);
@@ -168,8 +167,71 @@ void HTFT_voidDrawShape(Sprite_t Sprite,const u16* Copy_u16BckgArr)
 			}
 			HTFT_voidSendData(Local_u8High);
 			HTFT_voidSendData(Local_u8Low);
-			counter++;
 		}
 	}
-	counter=0;
+}
+
+void HTFT_voidDrawShapeBackgroundUpdate(Sprite_t Sprite,const u16* Copy_u16BckgArr,u16* Copy_u16BckgArr2)
+{
+	for(u16 i=0;i<20480;i++)
+	{
+		Copy_u16BckgArr2[i]=Copy_u16BckgArr[i];
+	}
+
+	u8  Local_u8StartX=Sprite.X_start;
+	u8  Local_u8EndX  =Sprite.X_end;
+	u8  Local_u8StartY=Sprite.Y_start;
+	u8  Local_u8EndY  =Sprite.Y_end;
+	const u16* Local_u16ImageArr=Sprite.Copy_u16ImageArr;
+
+	u8 Local_u8High;	//MSB of data u16
+	u8 Local_u8Low;		//LSB of data u16
+	volatile u16 color=0;
+	u16 width =(Local_u8EndX-Local_u8StartX)+1;
+	u16 height=(Local_u8EndY-Local_u8StartY)+1;
+
+	/*Set X Position*/
+	HTFT_voidSendCommand(0x2A);	//Set X Position
+	HTFT_voidSendData(0);		//Start Position
+	HTFT_voidSendData(Local_u8StartX);		//Start Position
+	HTFT_voidSendData(0);		//End Position
+	HTFT_voidSendData(Local_u8EndX);		//End Position
+
+	/*Set Y Position*/
+	HTFT_voidSendCommand(0x2B);	//Set X Position
+	HTFT_voidSendData(0);		//Start Position
+	HTFT_voidSendData(Local_u8StartY);		//Start Position
+	HTFT_voidSendData(0);		//End Position
+	HTFT_voidSendData(Local_u8EndY);		//End Position
+
+	/*Global Position*/
+	volatile u8 X_global;
+	volatile u8 Y_global;
+	volatile u16 Global_Index;
+	volatile u16 Local_Index;
+
+	/*Send Data*/
+	HTFT_voidSendCommand(0x2C);
+	for(u8 Y=0;Y<height;Y++)
+	{
+		for(u8 X=0;X<width;X++)
+		{
+			X_global=Local_u8StartX+X;
+			Y_global=Local_u8StartY+Y;
+			Global_Index=(Y_global*128)+X_global;
+			Local_Index=(width*Y)+X;
+			Local_u8High=(u8)(Local_u16ImageArr[Local_Index]>>8);
+			Local_u8Low =(u8)(Local_u16ImageArr[Local_Index]);
+			color=(Local_u8High<<8) | Local_u8Low;
+			if(color == TRANSPARENT)
+			{
+				Local_u8High=(u8)(Copy_u16BckgArr[Global_Index]>>8);
+				Local_u8Low =(u8)(Copy_u16BckgArr[Global_Index]);
+				color=(Local_u8High<<8) | Local_u8Low;
+			}
+			Copy_u16BckgArr2[Global_Index]=color;
+			HTFT_voidSendData(Local_u8High);
+			HTFT_voidSendData(Local_u8Low);
+		}
+	}
 }

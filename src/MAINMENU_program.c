@@ -12,11 +12,12 @@
 #include "HTFT_image.h"
 #include "HTFT_interface.h"
 #include "CTRLBUTTONS_interface.h"
+#include "OS_interface.h"
 
 
-
+static u8 UnderConst=0;
 extern u8 Button_pressed;
-Sprite_t SelectBox=
+static Sprite_t SelectBox=
 {
 		SELECTBOX,
 		48,
@@ -29,12 +30,12 @@ Sprite_t SelectBox=
 typedef enum
 {
 	Game1=15,
-	Game2=64,
+	Game2=65,
 	Game3=115
 
 }POSITION;
 
-POSITION CurrentPosition=Game1;
+static POSITION CurrentPosition=Game1;
 
 void update_position(void)
 {
@@ -63,52 +64,73 @@ void MAINMENU_voidButtonNavigation(void)
 	switch(Button_pressed)
 	{
 	case UP:
-		if(CurrentPosition==Game3)
+		if(UnderConst==0)
 		{
-			break;
+			if(CurrentPosition==Game3)
+			{
+				break;
+			}
+			else
+			{
+				SelectBox.Y_start+=50;
+				SelectBox.Y_end+=50;
+				Button_pressed=NONE;
+				HTFT_voidDisplayImage(Start);
+				HTFT_voidDrawShape(SelectBox,Start);
+				update_position();
+			}
 		}
-		else
-		{
-			SelectBox.Y_start+=50;
-			SelectBox.Y_end+=50;
-			Button_pressed=NONE;
-			HTFT_voidDisplayImage(Start);
-			HTFT_voidDrawShape(SelectBox,Start);
-			update_position();
-		}
+
 		break;
 	case DOWN:
-		if(CurrentPosition==Game1)
+		if(UnderConst==0)
 		{
-			break;
+			if(CurrentPosition==Game1)
+			{
+				break;
+			}
+			else
+			{
+				SelectBox.Y_start-=50;
+				SelectBox.Y_end-=50;
+				Button_pressed=NONE;
+				HTFT_voidDisplayImage(Start);
+				HTFT_voidDrawShape(SelectBox,Start);
+				update_position();
+			}
 		}
-		else
-		{
-			SelectBox.Y_start-=50;
-			SelectBox.Y_end-=50;
-			Button_pressed=NONE;
-			HTFT_voidDisplayImage(Start);
-			HTFT_voidDrawShape(SelectBox,Start);
-			update_position();
-		}
+
 		break;
 	case RIGHT:
 		break;
 	case LEFT:
 		break;
 	case OK:
-		if(CurrentPosition==Game1)
+		if(UnderConst==0)
 		{
-			HTFT_voidDisplayImage(Game);
+			if(CurrentPosition==Game1)
+			{
+				HTFT_voidDisplayImage(Game);
+				UnderConst=1;
+			}
+			else if(CurrentPosition==Game2)
+			{
+				OS_voidTaskSuspend(0);//Suspend Main Menu
+				OS_voidTaskResume(1);//Start Game1 Task
+			}
+			else if(CurrentPosition==Game3)
+			{
+				HTFT_voidDisplayImage(Game);
+				UnderConst=1;
+			}
 		}
-		else if(CurrentPosition==Game2)
+		else
 		{
-			HTFT_voidDisplayImage(Game);
+			MAINMENU_voidInit();
+			UnderConst=0;
 		}
-		else if(CurrentPosition==Game3)
-		{
-			HTFT_voidDisplayImage(Game);
-		}
+
+		Button_pressed=NONE;
 		break;
 	default:
 
