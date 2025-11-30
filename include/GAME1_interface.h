@@ -9,7 +9,7 @@
 #define GAME1_INTERFACE_H_
 
 
-void GAME1_voidGameStart(void);
+void GAME1_voidLevelStart(void);
 void GAME1_voidGame1Navigation(void);
-
+void GAME1_voidGameLogic(void);
 #endif /* GAME1_INTERFACE_H_ */

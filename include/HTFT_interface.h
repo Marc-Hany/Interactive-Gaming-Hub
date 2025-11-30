@@ -21,6 +21,8 @@ typedef enum
 	SELECTBOX30,
 	NUMBER,
 	OPERAND,
+	ANSWER,
+	SCORE,
 }SPRITE_ID;
 
 typedef struct
