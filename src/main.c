@@ -12,12 +12,6 @@
 #include "Assets.h"
 
 
-u8 StartFlag=0;
-u8 X_start=48;
-u8 X_end=82;
-u8 Y_start=15;
-u8 Y_end=49;
-
 void main(void)
 {
 	MRCC_voidInit();
@@ -34,6 +28,7 @@ void main(void)
 
 	MGPIO_voidSetPinMode(PORTA,PIN6,ALTERNATE_FUNC);
 	MGPIO_voidSetAlternatFuncConfig(PORTA,PIN6,AF5); //MISO
+	MGPIO_voidSetInputConfig(PORTA,PIN6,PULL_UP);	//Pull MISO UP
 
 	MGPIO_voidSetPinMode(PORTA,PIN7,ALTERNATE_FUNC);
 	MGPIO_voidSetAlternatFuncConfig(PORTA,PIN7,AF5); //MOSI
@@ -45,18 +40,34 @@ void main(void)
 	MGPIO_voidSetOutputConfig(PORTA,PIN0,PUSH_PULL,LOW_SPEED);
 
 	HTFT_voisCSHigh();
+	SD_CS_HIGH();
 	MSPI_voidMasterInit();
 	volatile u8 sd_init=HSD_u8Init();
 	volatile u8 write_chec2k;
-	u8 block[512];
-	for(u16 i=0;i<512;i++)
-	{
-		block[i]=Background[i];
-	}
-	write_chec2k=HSD_u8WriteBlock(0x00000000,block);
+//	u16 block[20480];
+//	for(u16 i=0;i<20480;i++)
+//	{
+//		block[i]=Game[i];
+//	}
+//	write_chec2k=HSD_u8WriteBlocks(16,Game,80);
+//	SD_CS_HIGH();
+//	write_chec2k=HSD_u8WriteBlocks(97,Start,80);
 
-	HSD_voidReadBlock(0x00000000,block);
 
+	u16 data[20480]={0};
+	HSD_voidReadBlocks(16,data,80);
+	SD_CS_HIGH();
+	HTFT_voisCSLow();
+	HTFT_voidInit();
+	HTFT_voidDisplayImage(data);
+
+	HTFT_voisCSHigh();
+	SD_CS_LOW();
+	HSD_voidReadBlocks(97,data,80);
+	SD_CS_HIGH();
+	HTFT_voisCSLow();
+	HTFT_voidInit();
+	HTFT_voidDisplayImage(data);
 
 	MGPIO_voidSetPinMode(PORTA,PIN0,OUTPUT);
 	while (1)

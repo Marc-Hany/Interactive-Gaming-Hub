@@ -49,7 +49,7 @@ u8 HSD_u8Init(void)
 
 	HSD_voidSendCommand(CMD0,0x00000000,0x95);	//CMD0 to Reset and enter Idle Mode
 
-	volatile u16 timeout = 1000;
+	volatile u16 timeout = 10000;
 	response = 0xFF;
 
 	/*Loop for response*/
@@ -311,144 +311,161 @@ void HSD_voidReadBlocks(u32 Copy_u32BlockIndex, u8* Copy_u8Buffer, u32 Copy_u32B
 
 u8 HSD_u8WriteBlock(u32 Copy_u32BlockIndex, u8* Copy_u8Buffer)
 {
-	u8 Local_u8WriteStatus=0;
-	/*Select Address Format*/
-	u32 Local_u32Address;
-	if (HSD_u8GetCardType()==SDHC)
-	{
-		Local_u32Address=Copy_u32BlockIndex;
-	}
-	else
-	{
-		Local_u32Address=Copy_u32BlockIndex*512;
-	}
-	/*..........CMD24..........*/
-	SD_CS_LOW();	//CS Pin LOW
+    u8 Local_u8WriteStatus = 0;
+    u32 Local_u32Address;
 
-	/*Send Command*/
-	HSD_voidSendCommand(CMD24,Local_u32Address,0XFF);
+    // Addressing depends on card type
+    if (HSD_u8GetCardType() == SDHC)
+        Local_u32Address = Copy_u32BlockIndex;      // SDHC uses block number
+    else
+        Local_u32Address = Copy_u32BlockIndex * 512; // Standard SD uses byte address
 
-	volatile u16 timeout = 1000;
-	volatile u8 response = 0xFF;
-	do {
-		response = MSPI_u8Transceive(0xFF);
-		timeout--;
-	} while ((response & 0x80) && timeout);
+    SD_CS_LOW();
 
-	/*Send start-of-data token*/
-	MSPI_u8Transceive(0xFE);
+    // ---------- Send CMD24 ----------
+    HSD_voidSendCommand(CMD24, Local_u32Address, 0xFF);
 
-	/*Send Data*/
-	for(u16 i=0;i<512;i++)
-	{
-		MSPI_u8Transceive(Copy_u8Buffer[i]);
-	}
+    // Read R1 response
+    volatile u16 timeout = 1000;
+    u8 response;
+    do {
+        response = MSPI_u8Transceive(0xFF);
+        timeout--;
+    } while ((response & 0x80) && timeout);
 
-	/*Send 2 CRC Bytes*/
-	MSPI_u8Transceive(0XFF);
-	MSPI_u8Transceive(0xFF);
+    // If CMD24 not accepted, abort
+    if (response != 0x00) {
+        SD_CS_HIGH();
+        MSPI_u8Transceive(0xFF);
+        return 0;
+    }
 
-	/*Read data response
-	 * accepted = 0x05*/
-	timeout = 1000;
-	response = 0xFF;
-	do {
-		response = MSPI_u8Transceive(0xFF);
-		timeout--;
-	} while ((response & 0x80) && timeout);
+    // Short delay before data token
+    MSPI_u8Transceive(0xFF);
 
-	/*Wait until card is not busy*/
-	if(response == 0x05)
-	{
-		timeout = 1000;
-		response = 0xFF;
-		do {
-			response = MSPI_u8Transceive(0xFF);
-			timeout--;
-		} while ((response != 0xFF) && timeout);
-		if(response==0XFF)
-		{
-			Local_u8WriteStatus=1;
-		}
-	}
-	/*Extra Clock*/
-	SD_CS_HIGH();	//CS Pin HIGH
-	MSPI_u8Transceive(0xFF);
-	return Local_u8WriteStatus;
+    // ---------- Send start-of-data token ----------
+    MSPI_u8Transceive(0xFE);
+
+    // ---------- Send 512 bytes ----------
+    for (u16 i = 0; i < 512; i++)
+        MSPI_u8Transceive(Copy_u8Buffer[i]);
+
+    // ---------- Send 2 CRC bytes ----------
+    MSPI_u8Transceive(0xFF);
+    MSPI_u8Transceive(0xFF);
+
+    // ---------- Read data response ----------
+    timeout = 10000;
+    u8 dataResponse;
+    do {
+        dataResponse = MSPI_u8Transceive(0xFF);
+        timeout--;
+    } while ((dataResponse & 0x10) && timeout); // wait until not busy
+
+    if ((dataResponse & 0x1F) == 0x05) { // 0x05 = Data accepted
+        // Wait until card is ready (0xFF)
+        timeout = 10000;
+        u8 busy;
+        do {
+            busy = MSPI_u8Transceive(0xFF);
+            timeout--;
+        } while (busy == 0x00 && timeout);
+        Local_u8WriteStatus = 1;
+    }
+
+    // Extra clock
+    SD_CS_HIGH();
+    MSPI_u8Transceive(0xFF);
+
+    return Local_u8WriteStatus;
 }
 
-u8 HSD_u8WriteBlocks(u32 Copy_u32BlockIndex, u8* Copy_u8Buffer,u32 Copy_u32BlockCount)
+
+u8 HSD_u8WriteBlocks(u32 Copy_u32BlockIndex, u8* Copy_u8Buffer, u32 Copy_u32BlockCount)
 {
-	u8 Local_u8WriteStatus=0;
-	/*Select Address Format*/
-	u32 Local_u32Address;
-	if (HSD_u8GetCardType()==SDHC)
-	{
-		Local_u32Address=Copy_u32BlockIndex;
-	}
-	else
-	{
-		Local_u32Address=Copy_u32BlockIndex*512;
-	}
-	/*..........CMD25..........*/
-	SD_CS_LOW();	//CS Pin LOW
+    u8 Local_u8WriteStatus = 0;
+    u32 Local_u32Address;
 
-	/*Send Command*/
-	HSD_voidSendCommand(CMD25,Local_u32Address,0XFF);
+    // Select address format
+    if (HSD_u8GetCardType() == SDHC) {
+        Local_u32Address = Copy_u32BlockIndex;
+    } else {
+        Local_u32Address = Copy_u32BlockIndex * 512;
+    }
 
-	volatile u16 timeout = 1000;
-	volatile u8 response = 0xFF;
-	do {
-		response = MSPI_u8Transceive(0xFF);
-		timeout--;
-	} while ((response & 0x80) && timeout);
+    SD_CS_LOW();  // CS low for entire sequence
+    MSPI_u8Transceive(0xFF); // extra clock
 
-	for(u16 i=0;i<Copy_u32BlockCount;i++)
-	{
-		/*Send start-of-multiple-data token*/
-		MSPI_u8Transceive(0xFC);
+    // Send CMD25 (Write Multiple Blocks)
+    HSD_voidSendCommand(CMD25, Local_u32Address, 0xFF);
 
-		/*Send Data*/
-		for(u16 j=0;j<512;j++)
-		{
-			MSPI_u8Transceive(Copy_u8Buffer[i*512 + j]);
-		}
+    // Wait for card to respond (response R1, should be 0x00)
+    u16 timeout = 1000;
+    u8 response = 0xFF;
+    do {
+        response = MSPI_u8Transceive(0xFF);
+        timeout--;
+    } while ((response & 0x80) && timeout);
 
-		/*Send 2 CRC Bytes*/
-		MSPI_u8Transceive(0XFF);
-		MSPI_u8Transceive(0xFF);
+    if (response != 0x00) {  // CMD25 rejected
+        SD_CS_HIGH();
+        return 0;
+    }
 
-		/*Read data response
-		 * accepted = 0x05*/
-		timeout = 1000;
-		response = 0xFF;
-		do {
-			response = MSPI_u8Transceive(0xFF);
-			timeout--;
-		} while ((response & 0x80) && timeout);
-	}
+    // Write each block
+    for (u32 i = 0; i < Copy_u32BlockCount; i++) {
+        // Send start-of-block token
+        MSPI_u8Transceive(0xFC);
 
-	/*Send Stop token OXFD*/
-	MSPI_u8Transceive(0xFD);
-	/*Wait until card is not busy*/
-	if(response == 0x05)
-	{
-		timeout = 1000;
-		response = 0xFF;
-		do {
-			response = MSPI_u8Transceive(0xFF);
-			timeout--;
-		} while ((response != 0xFF) && timeout);
-		if(response==0XFF)
-		{
-			Local_u8WriteStatus=1;
-		}
-	}
-	/*Extra Clock*/
-	SD_CS_HIGH();	//CS Pin HIGH
-	MSPI_u8Transceive(0xFF);
-	return Local_u8WriteStatus;
+        // Send 512 bytes of data
+        for (u16 j = 0; j < 512; j++) {
+            MSPI_u8Transceive(Copy_u8Buffer[i * 512 + j]);
+        }
+
+        // Send dummy CRC
+        MSPI_u8Transceive(0xFF);
+        MSPI_u8Transceive(0xFF);
+
+        // Read data response token
+        timeout = 1000;
+        response = 0xFF;
+        do {
+            response = MSPI_u8Transceive(0xFF);
+            timeout--;
+        } while (response == 0xFF && timeout);
+
+        // Mask lower 5 bits
+        u8 dataResponse = response & 0x1F;
+        if (dataResponse != 0x05) { // 0x05 = data accepted
+            SD_CS_HIGH();
+            return 0;
+        }
+
+        // Wait until card is no longer busy
+        timeout = 10000;
+        do {
+            response = MSPI_u8Transceive(0xFF);
+            timeout--;
+        } while (response == 0x00 && timeout);
+    }
+
+    // Send stop transmission token
+    MSPI_u8Transceive(0xFD);
+
+    // Wait until card is not busy after stop
+    timeout = 10000;
+    do {
+        response = MSPI_u8Transceive(0xFF);
+        timeout--;
+    } while (response == 0x00 && timeout);
+
+    SD_CS_HIGH(); // CS high
+    MSPI_u8Transceive(0xFF); // extra clock
+
+    Local_u8WriteStatus = 1;
+    return Local_u8WriteStatus;
 }
+
 
 
 

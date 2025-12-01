@@ -90,7 +90,7 @@ void HTFT_voidSendCommand(u8 Copy_u8Command)
 	MSPI_u8Transceive(Copy_u8Command);
 	MGPIO_voidSetPinValue(HTFT_PORT,PIN8,PIN_HIGH);
 }
-void HTFT_voidDisplayImage(const u8* Copy_u16ImageArr)
+void HTFT_voidDisplayImage(u16* Copy_u16ImageArr)
 {
 	u8 Local_u8High;	//MSB of data u16
 	u8 Local_u8Low;		//LSB of data u16
@@ -112,10 +112,10 @@ void HTFT_voidDisplayImage(const u8* Copy_u16ImageArr)
 	/*Send Data*/
 	HTFT_voidSendCommand(0x2C);
 
-	for(u16 i=0;i<40960;i+=2)
+	for(u16 i=0;i<20480;i++)
 	{
-		Local_u8High=(u8)(Copy_u16ImageArr[i]);
-		Local_u8Low =(u8)(Copy_u16ImageArr[i+1]);
+		Local_u8High=(u8)(Copy_u16ImageArr[i]>>8);
+		Local_u8Low =(u8)(Copy_u16ImageArr[i]);
 		HTFT_voidSendData(Local_u8High);
 		HTFT_voidSendData(Local_u8Low);
 	}
