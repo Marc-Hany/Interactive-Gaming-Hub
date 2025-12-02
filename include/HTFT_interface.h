@@ -35,6 +35,8 @@ typedef struct
 	const u16* Copy_u16ImageArr;
 }Sprite_t;
 
+void HTFT_voidCSLow(void);
+void HTFT_voidCSHigh(void);
 void HTFT_voidInit(void);
 void HTFT_voidSendData(u8 Copy_u8Data);
 void HTFT_voidSendCommand(u8 Copy_u8Command);

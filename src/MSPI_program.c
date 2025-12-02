@@ -14,13 +14,15 @@
 void MSPI_voidMasterInit(void)
 {
 	CLR_BIT(MSPI->CR1,11);	//8 bit Frame
-	CLR_BIT(MSPI->CR1,9);	//Software slave management disabled
+	SET_BIT(MSPI->CR1,9);	//Software slave management enabled
+	SET_BIT(MSPI->CR1,8);	//Software slave management enabled
 	CLR_BIT(MSPI->CR1,10);	//Full Duplex
 	CLR_BIT(MSPI->CR1,7);	//MSB transmitted first
 	CLR_BIT(MSPI->CR1,1);	//Clock polarity 0 when idle
-	CLR_BIT(MSPI->CR1,7);	//The first clock transition is the first data capture edge
+	CLR_BIT(MSPI->CR1,0);	//The first clock transition is the first data capture edge
 	/*Baud rate control*/
 	MSPI->CR1 &=~(7<<3);	//fPCLK/2
+//	MSPI->CR1 |= (7<<3);
 	SET_BIT(MSPI->CR1,2);	//Master Selection
 	SET_BIT(MSPI->CR1,6);	//SPI Enable
 }
