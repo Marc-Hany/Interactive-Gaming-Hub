@@ -17,6 +17,10 @@
 
 static u8 UnderConst=0;
 extern u8 Button_pressed;
+
+static u32 StartScreenIndex=16;
+static u32 GameScreenIndex=97;
+
 static Sprite_t SelectBox=
 {
 		SELECTBOX,
@@ -55,8 +59,8 @@ void update_position(void)
 
 void MAINMENU_voidInit(void)
 {
-	HTFT_voidDisplayImage(Start);
-	HTFT_voidDrawShape(SelectBox,Start);
+	HTFT_voidDisplayImage(StartScreenIndex);
+	HTFT_voidDrawShape(SelectBox,StartScreenIndex);
 }
 
 void MAINMENU_voidButtonNavigation(void)

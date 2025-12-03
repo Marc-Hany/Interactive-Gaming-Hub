@@ -91,8 +91,14 @@ void HTFT_voidSendCommand(u8 Copy_u8Command)
 	MSPI_u8Transceive(Copy_u8Command);
 	MGPIO_voidSetPinValue(HTFT_PORT,PIN8,PIN_HIGH);
 }
-void HTFT_voidDisplayImage(u16* Copy_u16ImageArr)
+void HTFT_voidDisplayImage(u32 Copy_u32ImageIndex)
 {
+	u16 Image[20480]={0};
+	HTFT_voidCSHigh();
+	SD_CS_LOW();
+	HSD_voidReadBlocks(Copy_u32ImageIndex,Image,80);
+	SD_CS_HIGH();
+	HTFT_voidCSLow();
 	u8 Local_u8High;	//MSB of data u16
 	u8 Local_u8Low;		//LSB of data u16
 
@@ -104,7 +110,7 @@ void HTFT_voidDisplayImage(u16* Copy_u16ImageArr)
 	HTFT_voidSendData(127);		//End Position
 
 	/*Set Y Position*/
-	HTFT_voidSendCommand(0x2B);	//Set X Position
+	HTFT_voidSendCommand(0x2B);	//Set Y Position
 	HTFT_voidSendData(0);		//Start Position
 	HTFT_voidSendData(0);		//Start Position
 	HTFT_voidSendData(0);		//End Position
@@ -115,16 +121,23 @@ void HTFT_voidDisplayImage(u16* Copy_u16ImageArr)
 
 	for(u16 i=0;i<20480;i++)
 	{
-		Local_u8High=(u8)(Copy_u16ImageArr[i]>>8);
-		Local_u8Low =(u8)(Copy_u16ImageArr[i]);
+		Local_u8High=(u8)(Image[i]>>8);
+		Local_u8Low =(u8)(Image[i]);
 		HTFT_voidSendData(Local_u8High);
 		HTFT_voidSendData(Local_u8Low);
 	}
 }
 
 
-void HTFT_voidDrawShape(Sprite_t Sprite,const u16* Copy_u16BckgArr)
+void HTFT_voidDrawShape(Sprite_t Sprite,u32 Copy_u32ImageIndex)
 {
+	u16 Image[20480]={0};
+	HTFT_voidCSHigh();
+	SD_CS_LOW();
+	HSD_voidReadBlocks(Copy_u32ImageIndex,Image,80);
+	SD_CS_HIGH();
+	HTFT_voidCSLow();
+
 	u8  Local_u8StartX=Sprite.X_start;
 	u8  Local_u8EndX  =Sprite.X_end;
 	u8  Local_u8StartY=Sprite.Y_start;
@@ -173,8 +186,8 @@ void HTFT_voidDrawShape(Sprite_t Sprite,const u16* Copy_u16BckgArr)
 				X_global=Local_u8StartX+X;
 				Y_global=Local_u8StartY+Y;
 				Global_Index=(Y_global*128)+X_global;
-				Local_u8High=(u8)(Copy_u16BckgArr[Global_Index]>>8);
-				Local_u8Low =(u8)(Copy_u16BckgArr[Global_Index]);
+				Local_u8High=(u8)(Image[Global_Index]>>8);
+				Local_u8Low =(u8)(Image[Global_Index]);
 
 			}
 			HTFT_voidSendData(Local_u8High);

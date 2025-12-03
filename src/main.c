@@ -15,6 +15,7 @@
 #include "HLEDMATRIX_interface.h"
 #include "MTIM2_interface.h"
 #include "GAME1_interface.h"
+#include "HSD_interface.h"
 
 
 void main(void)
@@ -37,6 +38,7 @@ void main(void)
 
 	MGPIO_voidSetPinMode(PORTA,PIN6,ALTERNATE_FUNC);
 	MGPIO_voidSetAlternatFuncConfig(PORTA,PIN6,AF5); //MISO
+	MGPIO_voidSetInputConfig(PORTA,PIN6,PULL_UP);	//Pull MISO UP
 
 	MGPIO_voidSetPinMode(PORTA,PIN7,ALTERNATE_FUNC);
 	MGPIO_voidSetAlternatFuncConfig(PORTA,PIN7,AF5); //MOSI
@@ -49,6 +51,12 @@ void main(void)
 	SYSTICK_voidStart(1000);
 	CTRLBUTTONS_voidInit();
 	MSPI_voidMasterInit();
+	HTFT_voidCSHigh();
+	SD_CS_HIGH();
+	MSPI_voidMasterInit();
+	volatile u8 sd_init=HSD_u8Init();
+	SD_CS_HIGH();
+	HTFT_voidCSLow();
 	HTFT_voidInit();
 	MAINMENU_voidInit();
 	HLEDMATRIX_voidInitSTP();
