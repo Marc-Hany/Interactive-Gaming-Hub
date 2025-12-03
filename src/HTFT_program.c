@@ -18,7 +18,9 @@
 #include "HTFT_interface.h"
 #include "MSPI_interface.h"
 #include "HSD_interface.h"
+#include "NVIC_interface.h"
 
+static u32 BackgroundIndex=582;
 
 void HTFT_voidCSLow(void)
 {
@@ -91,12 +93,11 @@ void HTFT_voidSendCommand(u8 Copy_u8Command)
 	MSPI_u8Transceive(Copy_u8Command);
 	MGPIO_voidSetPinValue(HTFT_PORT,PIN8,PIN_HIGH);
 }
-void HTFT_voidDisplayImage(u32 Copy_u32ImageIndex)
+void HTFT_voidDisplayImage(u32 Copy_u32ImageIndex, u16* Copy_u16Image)
 {
-	u16 Image[20480]={0};
 	HTFT_voidCSHigh();
 	SD_CS_LOW();
-	HSD_voidReadBlocks(Copy_u32ImageIndex,Image,80);
+	HSD_voidReadBlocks(Copy_u32ImageIndex,Copy_u16Image,80);
 	SD_CS_HIGH();
 	HTFT_voidCSLow();
 	u8 Local_u8High;	//MSB of data u16
@@ -121,20 +122,19 @@ void HTFT_voidDisplayImage(u32 Copy_u32ImageIndex)
 
 	for(u16 i=0;i<20480;i++)
 	{
-		Local_u8High=(u8)(Image[i]>>8);
-		Local_u8Low =(u8)(Image[i]);
+		Local_u8High=(u8)(Copy_u16Image[i]>>8);
+		Local_u8Low =(u8)(Copy_u16Image[i]);
 		HTFT_voidSendData(Local_u8High);
 		HTFT_voidSendData(Local_u8Low);
 	}
 }
 
 
-void HTFT_voidDrawShape(Sprite_t Sprite,u32 Copy_u32ImageIndex)
+void HTFT_voidDrawShape(Sprite_t Sprite,u32 Copy_u32ImageIndex, u16* Copy_u16Image)
 {
-	u16 Image[20480]={0};
 	HTFT_voidCSHigh();
 	SD_CS_LOW();
-	HSD_voidReadBlocks(Copy_u32ImageIndex,Image,80);
+	HSD_voidReadBlocks(Copy_u32ImageIndex,Copy_u16Image,80);
 	SD_CS_HIGH();
 	HTFT_voidCSLow();
 
@@ -186,8 +186,8 @@ void HTFT_voidDrawShape(Sprite_t Sprite,u32 Copy_u32ImageIndex)
 				X_global=Local_u8StartX+X;
 				Y_global=Local_u8StartY+Y;
 				Global_Index=(Y_global*128)+X_global;
-				Local_u8High=(u8)(Image[Global_Index]>>8);
-				Local_u8Low =(u8)(Image[Global_Index]);
+				Local_u8High=(u8)(Copy_u16Image[Global_Index]>>8);
+				Local_u8Low =(u8)(Copy_u16Image[Global_Index]);
 
 			}
 			HTFT_voidSendData(Local_u8High);
@@ -196,13 +196,13 @@ void HTFT_voidDrawShape(Sprite_t Sprite,u32 Copy_u32ImageIndex)
 	}
 }
 
-void HTFT_voidDrawShapeBackgroundUpdate(Sprite_t Sprite,const u16* Copy_u16BckgArr,u16* Copy_u16BckgArr2)
+void HTFT_voidDrawShapeBackgroundUpdate(Sprite_t Sprite,u32 Copy_u32ImageIndex, u16* Copy_u16Image)
 {
-	for(u16 i=0;i<20480;i++)
-	{
-		Copy_u16BckgArr2[i]=Copy_u16BckgArr[i];
-	}
-
+	HTFT_voidCSHigh();
+	SD_CS_LOW();
+	HSD_voidReadBlocks(Copy_u32ImageIndex,Copy_u16Image,80);
+	SD_CS_HIGH();
+	HTFT_voidCSLow();
 	u8  Local_u8StartX=Sprite.X_start;
 	u8  Local_u8EndX  =Sprite.X_end;
 	u8  Local_u8StartY=Sprite.Y_start;
@@ -250,15 +250,20 @@ void HTFT_voidDrawShapeBackgroundUpdate(Sprite_t Sprite,const u16* Copy_u16BckgA
 			color=(Local_u8High<<8) | Local_u8Low;
 			if(color == TRANSPARENT)
 			{
-				Local_u8High=(u8)(Copy_u16BckgArr[Global_Index]>>8);
-				Local_u8Low =(u8)(Copy_u16BckgArr[Global_Index]);
+				Local_u8High=(u8)(Copy_u16Image[Global_Index]>>8);
+				Local_u8Low =(u8)(Copy_u16Image[Global_Index]);
 				color=(Local_u8High<<8) | Local_u8Low;
 			}
-			Copy_u16BckgArr2[Global_Index]=color;
+			Copy_u16Image[Global_Index]=color;
 			HTFT_voidSendData(Local_u8High);
 			HTFT_voidSendData(Local_u8Low);
 		}
 	}
+	HTFT_voidCSHigh();
+	SD_CS_LOW();
+	HSD_u8WriteBlocks(BackgroundIndex,Copy_u16Image,80);
+	SD_CS_HIGH();
+	HTFT_voidCSLow();
 }
 
 void HTFT_voidSDDrawShape(const u16* Copy_u16BckgArr,

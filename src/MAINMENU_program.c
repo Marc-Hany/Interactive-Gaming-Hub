@@ -59,8 +59,8 @@ void update_position(void)
 
 void MAINMENU_voidInit(void)
 {
-	HTFT_voidDisplayImage(StartScreenIndex);
-	HTFT_voidDrawShape(SelectBox,StartScreenIndex);
+	HTFT_voidDisplayImage(StartScreenIndex,Image);
+	HTFT_voidDrawShape(SelectBox,StartScreenIndex,Image);
 }
 
 void MAINMENU_voidButtonNavigation(void)
@@ -72,15 +72,17 @@ void MAINMENU_voidButtonNavigation(void)
 		{
 			if(CurrentPosition==Game3)
 			{
+				Button_pressed=NONE;
 				break;
+
 			}
 			else
 			{
 				SelectBox.Y_start+=50;
 				SelectBox.Y_end+=50;
 				Button_pressed=NONE;
-				HTFT_voidDisplayImage(Start);
-				HTFT_voidDrawShape(SelectBox,Start);
+				HTFT_voidDisplayImage(StartScreenIndex,Image);
+				HTFT_voidDrawShape(SelectBox,StartScreenIndex,Image);
 				update_position();
 			}
 		}
@@ -91,6 +93,7 @@ void MAINMENU_voidButtonNavigation(void)
 		{
 			if(CurrentPosition==Game1)
 			{
+				Button_pressed=NONE;
 				break;
 			}
 			else
@@ -98,23 +101,20 @@ void MAINMENU_voidButtonNavigation(void)
 				SelectBox.Y_start-=50;
 				SelectBox.Y_end-=50;
 				Button_pressed=NONE;
-				HTFT_voidDisplayImage(Start);
-				HTFT_voidDrawShape(SelectBox,Start);
+				HTFT_voidDisplayImage(StartScreenIndex,Image);
+				HTFT_voidDrawShape(SelectBox,StartScreenIndex,Image);
 				update_position();
 			}
 		}
 
 		break;
-	case RIGHT:
-		break;
-	case LEFT:
-		break;
+
 	case OK:
 		if(UnderConst==0)
 		{
 			if(CurrentPosition==Game1)
 			{
-				HTFT_voidDisplayImage(Game);
+				HTFT_voidDisplayImage(GameScreenIndex,Image);
 				UnderConst=1;
 			}
 			else if(CurrentPosition==Game2)
@@ -124,7 +124,7 @@ void MAINMENU_voidButtonNavigation(void)
 			}
 			else if(CurrentPosition==Game3)
 			{
-				HTFT_voidDisplayImage(Game);
+				HTFT_voidDisplayImage(GameScreenIndex,Image);
 				UnderConst=1;
 			}
 		}

@@ -24,13 +24,17 @@ extern u8 randomAp;	//Answer Position (0-3)
 extern u8 randomAnswer1;	//Answer (0-99)
 extern u8 randomAnswer2;	//Answer (0-99)
 extern u8 randomAnswer3;	//Answer (0-99)
-
+extern u16 Image[20480];
 
 volatile u8 CorrectAnswer=0;
 volatile u8 LevelCounter=0;
 volatile u8 CorrectCounter=0;
 volatile u8 NextFlag=0;
 volatile u8 LastPressed=0;
+static u32 BoardIndex=178;
+static u32 CorrectIndex=259;
+static u32 WrongIndex=340;
+static u32 Background_Index=582;
 
 static Sprite_t SelectBox=
 {
@@ -243,7 +247,7 @@ static void GAME1_voidDrawCorrectAnswer(void)
 		GAME1_voidSetNumberSprite(&Answer,digit);
 
 		/*Draw Answers*/
-		HTFT_voidDrawShapeBackgroundUpdate(Answer,Board2,Board2);
+		HTFT_voidDrawShapeBackgroundUpdate(Answer,Background_Index,Image);
 
 		/*Draw First digit*/
 		digit=CorrectAnswer/10;
@@ -252,14 +256,14 @@ static void GAME1_voidDrawCorrectAnswer(void)
 		GAME1_voidSetNumberSprite(&Answer,digit);
 
 		/*Draw Answers*/
-		HTFT_voidDrawShapeBackgroundUpdate(Answer,Board2,Board2);
+		HTFT_voidDrawShapeBackgroundUpdate(Answer,Background_Index,Image);
 	}
 	else if(CorrectAnswer<10)
 	{
 		GAME1_voidSetNumberSprite(&Answer,CorrectAnswer);
 
 		/*Draw Answers*/
-		HTFT_voidDrawShapeBackgroundUpdate(Answer,Board2,Board2);
+		HTFT_voidDrawShapeBackgroundUpdate(Answer,Background_Index,Image);
 	}
 	else
 	{
@@ -285,7 +289,7 @@ static void GAME1_voidDrawRandomAnswers(u8 Copy_u8RandomAnswer)
 		GAME1_voidSetNumberSprite(&Answer,digit);
 
 		/*Draw Answers*/
-		HTFT_voidDrawShapeBackgroundUpdate(Answer,Board2,Board2);
+		HTFT_voidDrawShapeBackgroundUpdate(Answer,Background_Index,Image);
 
 		/*Draw First digit*/
 		digit=Copy_u8RandomAnswer/10;
@@ -294,14 +298,14 @@ static void GAME1_voidDrawRandomAnswers(u8 Copy_u8RandomAnswer)
 		GAME1_voidSetNumberSprite(&Answer,digit);
 
 		/*Draw Answers*/
-		HTFT_voidDrawShapeBackgroundUpdate(Answer,Board2,Board2);
+		HTFT_voidDrawShapeBackgroundUpdate(Answer,Background_Index,Image);
 	}
 	else if(Copy_u8RandomAnswer<10)
 	{
 		GAME1_voidSetNumberSprite(&Answer,Copy_u8RandomAnswer);
 
 		/*Draw Answers*/
-		HTFT_voidDrawShapeBackgroundUpdate(Answer,Board2,Board2);
+		HTFT_voidDrawShapeBackgroundUpdate(Answer,Background_Index,Image);
 	}
 	else
 	{
@@ -342,23 +346,23 @@ void GAME1_voidLevelStart(void)
 {
 
 	/*Draw background*/
-	HTFT_voidDisplayImage(Board);
+	HTFT_voidDisplayImage(BoardIndex,Image);
 
 
 	/*Draw Equation*/
 	GAME1_voidSetNumberSprite(&Number1,randomN1);
 	GAME1_voidSetNumberSprite(&Number2,randomN2);
 	GAME1_voidSetOperandSprite();
-	HTFT_voidDrawShapeBackgroundUpdate(Number1,Board,Board2);	//Number 1
-	HTFT_voidDrawShapeBackgroundUpdate(Number2,Board2,Board2);	//Number 2
-	HTFT_voidDrawShapeBackgroundUpdate(Operand,Board2,Board2);	//Operand
+	HTFT_voidDrawShapeBackgroundUpdate(Number1,BoardIndex,Image);	//Number 1
+	HTFT_voidDrawShapeBackgroundUpdate(Number2,BoardIndex,Image);	//Number 2
+	HTFT_voidDrawShapeBackgroundUpdate(Operand,BoardIndex,Image);	//Operand
 
 
 	/*Draw Answers*/
 	GAME1_voidDrawAnswers();
 
 	/*Draw Selection Board*/
-	HTFT_voidDrawShape(SelectBox,Board2);
+	HTFT_voidDrawShape(SelectBox,Background_Index,Image);
 
 	/*Run Navigation*/
 	NextFlag=1;
@@ -380,8 +384,8 @@ void GAME1_voidGame1Navigation(void)
 			SelectBox.Y_start+=45;
 			SelectBox.Y_end+=45;
 			Button_pressed=NONE;
-			HTFT_voidDisplayImage(Board2);
-			HTFT_voidDrawShape(SelectBox,Board2);
+			HTFT_voidDisplayImage(Background_Index,Image);
+			HTFT_voidDrawShape(SelectBox,Background_Index,Image);
 			GAME1_voidUpdatePosition();
 		}
 		break;
@@ -395,8 +399,8 @@ void GAME1_voidGame1Navigation(void)
 			SelectBox.Y_start-=45;
 			SelectBox.Y_end-=45;
 			Button_pressed=NONE;
-			HTFT_voidDisplayImage(Board2);
-			HTFT_voidDrawShape(SelectBox,Board2);
+			HTFT_voidDisplayImage(Background_Index,Image);
+			HTFT_voidDrawShape(SelectBox,Background_Index,Image);
 			GAME1_voidUpdatePosition();
 		}
 		break;
@@ -410,8 +414,8 @@ void GAME1_voidGame1Navigation(void)
 			SelectBox.X_start+=60;
 			SelectBox.X_end+=60;
 			Button_pressed=NONE;
-			HTFT_voidDisplayImage(Board2);
-			HTFT_voidDrawShape(SelectBox,Board2);
+			HTFT_voidDisplayImage(Background_Index,Image);
+			HTFT_voidDrawShape(SelectBox,Background_Index,Image);
 			GAME1_voidUpdatePosition();
 		}
 		break;
@@ -425,20 +429,20 @@ void GAME1_voidGame1Navigation(void)
 			SelectBox.X_start-=60;
 			SelectBox.X_end-=60;
 			Button_pressed=NONE;
-			HTFT_voidDisplayImage(Board2);
-			HTFT_voidDrawShape(SelectBox,Board2);
+			HTFT_voidDisplayImage(Background_Index,Image);
+			HTFT_voidDrawShape(SelectBox,Background_Index,Image);
 			GAME1_voidUpdatePosition();
 		}
 		break;
 	case OK:
 		if (CurrentPosition==CorrectPosition)
 		{
-			HTFT_voidDisplayImage(Correct);
+			HTFT_voidDisplayImage(CorrectIndex,Image);
 			CorrectFlag=1;
 		}
 		else
 		{
-			HTFT_voidDisplayImage(Wrong);
+			HTFT_voidDisplayImage(WrongIndex,Image);
 		}
 		u32 now=SYSTICK_u32GetElapsedTime();
 		if(now-LastPressed>700)
@@ -498,12 +502,12 @@ void GAME1_voidGameLogic(void)
 	else if(NextFlag==2)
 	{
 		/*Draw Score Board*/
-		HTFT_voidDisplayImage(Board);
+//		HTFT_voidDisplayImage(Board);
 
 		/*Draw Score at Correct Position*/
 		GAME1_voidSetNumberSprite(&Score,CorrectCounter);
 
-		HTFT_voidDrawShape(Score,Board);
+//		HTFT_voidDrawShape(Score,Board);
 		NextFlag=3;
 	}
 	else if(NextFlag==3)

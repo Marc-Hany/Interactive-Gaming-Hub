@@ -40,9 +40,9 @@ void HTFT_voidCSHigh(void);
 void HTFT_voidInit(void);
 void HTFT_voidSendData(u8 Copy_u8Data);
 void HTFT_voidSendCommand(u8 Copy_u8Command);
-void HTFT_voidDisplayImage(u32 Copy_u32ImageIndex);
-void HTFT_voidDrawShape(Sprite_t Sprite,u32 Copy_u32ImageIndex);
-void HTFT_voidDrawShapeBackgroundUpdate(Sprite_t Sprite,const u16* Copy_u16BckgArr,u16* Copy_u16BckgArr2);
+void HTFT_voidDisplayImage(u32 Copy_u32ImageIndex, u16* Copy_u16Image);
+void HTFT_voidDrawShape(Sprite_t Sprite,u32 Copy_u32ImageIndex, u16* Copy_u16Image);
+void HTFT_voidDrawShapeBackgroundUpdate(Sprite_t Sprite,u32 Copy_u32ImageIndex, u16* Copy_u16Image);
 
 
 #endif /* HTFT_INTERFACE_H_ */
