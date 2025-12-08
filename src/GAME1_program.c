@@ -34,7 +34,9 @@ volatile u8 LastPressed=0;
 static u32 BoardIndex=178;
 static u32 CorrectIndex=259;
 static u32 WrongIndex=340;
+static u32 Score_Index=501;
 static u32 Background_Index=582;
+
 
 static Sprite_t SelectBox=
 {
@@ -353,12 +355,15 @@ void GAME1_voidLevelStart(void)
 	GAME1_voidSetNumberSprite(&Number1,randomN1);
 	GAME1_voidSetNumberSprite(&Number2,randomN2);
 	GAME1_voidSetOperandSprite();
+//	HTFT_voidDrawShape(Number1,BoardIndex,Image);
+//	HTFT_voidDrawShape(Number2,BoardIndex,Image);
+//	HTFT_voidDrawShape(Operand,BoardIndex,Image);
 	HTFT_voidDrawShapeBackgroundUpdate(Number1,BoardIndex,Image);	//Number 1
 	HTFT_voidDrawShapeBackgroundUpdate(Number2,BoardIndex,Image);	//Number 2
 	HTFT_voidDrawShapeBackgroundUpdate(Operand,BoardIndex,Image);	//Operand
 
 
-	/*Draw Answers*/
+//	/*Draw Answers*/
 	GAME1_voidDrawAnswers();
 
 	/*Draw Selection Board*/
@@ -502,12 +507,12 @@ void GAME1_voidGameLogic(void)
 	else if(NextFlag==2)
 	{
 		/*Draw Score Board*/
-//		HTFT_voidDisplayImage(Board);
+		HTFT_voidDisplayImage(Score_Index,Image);
 
 		/*Draw Score at Correct Position*/
 		GAME1_voidSetNumberSprite(&Score,CorrectCounter);
 
-//		HTFT_voidDrawShape(Score,Board);
+		HTFT_voidDrawShape(Score,Score_Index,Image);
 		NextFlag=3;
 	}
 	else if(NextFlag==3)
