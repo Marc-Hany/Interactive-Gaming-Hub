@@ -64,7 +64,7 @@ void main(void)
 	OS_u8CreateTask(MAINMENU_voidButtonNavigation,5,0,0);
 	OS_u8CreateTask(GAME1_voidGameLogic,1,1,0);
 	OS_voidTaskSuspend(1);
-	OS_voidStartScheduler(500);
+	OS_voidStartScheduler(100);
 	while (1)
 	 {
 

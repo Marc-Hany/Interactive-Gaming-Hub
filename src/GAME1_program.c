@@ -13,6 +13,7 @@
 #include "HTFT_interface.h"
 #include "OS_interface.h"
 #include "CTRLBUTTONS_interface.h"
+#include "HLEDMATRIX_interface.h"
 
 #include <stdlib.h>
 
@@ -36,6 +37,8 @@ static u32 CorrectIndex=259;
 static u32 WrongIndex=340;
 static u32 Score_Index=501;
 static u32 Background_Index=582;
+
+u8 smileyFace[9]={255, 255, 219, 255, 126, 189, 195, 255};
 
 
 static Sprite_t SelectBox=
@@ -444,6 +447,8 @@ void GAME1_voidGame1Navigation(void)
 		{
 			HTFT_voidDisplayImage(CorrectIndex,Image);
 			CorrectFlag=1;
+
+
 		}
 		else
 		{
