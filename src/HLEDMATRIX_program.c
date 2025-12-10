@@ -16,10 +16,17 @@
 #include "HLEDMATRIX_private.h"
 
 
-u8 Display[8]={126, 60, 90, 102, 126, 126, 126, 126};
+u8 Display[8]={0, 0, 0, 0, 0, 0, 0, 0};
 u8 Copy_u8Col=0b00000001;
 u8 ij=0;
 
+void HLEDMATRIX_voidSetDisplay(u8 Copy_u8Display[])
+{
+	for(u8 i=0;i<8;i++)
+	{
+		Display[i]=Copy_u8Display[i];
+	}
+}
 void HLEDMATRIX_voidInit(void)
 {
 	/*Define Pins Configuration*/

@@ -8,7 +8,7 @@
 #ifndef HLEDMATRIX_INTERFACE_H_
 #define HLEDMATRIX_INTERFACE_H_
 
-
+void HLEDMATRIX_voidSetDisplay(u8 Copy_u8Display[]);
 void HLEDMATRIX_voidInit(void);
 void HLEDMATRIX_voidInitSTP(void);
 void HLEDMATRIX_voidDisplay(u8 *Copy_pu8Shape);

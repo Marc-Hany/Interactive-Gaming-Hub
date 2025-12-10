@@ -13,6 +13,7 @@
 #include "HTFT_interface.h"
 #include "OS_interface.h"
 #include "CTRLBUTTONS_interface.h"
+#include "HLEDMATRIX_interface.h"
 
 #include <stdlib.h>
 
@@ -31,6 +32,12 @@ volatile u8 LevelCounter=0;
 volatile u8 CorrectCounter=0;
 volatile u8 NextFlag=0;
 volatile u8 LastPressed=0;
+
+u8 smiley_face[8]={0, 0, 36, 0, 129, 66, 60, 0};
+u8 sad_face[8]={0, 36, 0, 0, 60, 66, 129, 0};
+u16 time_counter=2000;
+u8 timeisupFlag=0;
+u16 time_left=9;
 
 static Sprite_t SelectBox=
 {
@@ -96,6 +103,16 @@ static Sprite_t Answer=
 		0,
 		0,
 		0,
+		One
+};
+
+static Sprite_t Time=
+{
+		TIME,
+		109,
+		118,
+		130,
+		159,
 		One
 };
 
@@ -338,6 +355,16 @@ void GAME1_voidDrawAnswers(void)
 
 }
 
+static void GAME1_voidDrawTime(void)
+{
+	Time.Copy_u16ImageArr=TimeBackground;
+	HTFT_voidDrawShapeBackgroundUpdate(Time,Board2,Board2);
+	GAME1_voidSetNumberSprite(&Time,time_left);
+
+	/*Draw Answers*/
+	HTFT_voidDrawShapeBackgroundUpdate(Time,Board2,Board2);
+}
+
 void GAME1_voidLevelStart(void)
 {
 
@@ -359,6 +386,9 @@ void GAME1_voidLevelStart(void)
 
 	/*Draw Selection Board*/
 	HTFT_voidDrawShape(SelectBox,Board2);
+
+	/*Draw Time*/
+	GAME1_voidDrawTime();
 
 	/*Run Navigation*/
 	NextFlag=1;
@@ -433,11 +463,14 @@ void GAME1_voidGame1Navigation(void)
 	case OK:
 		if (CurrentPosition==CorrectPosition)
 		{
+			HLEDMATRIX_voidSetDisplay(smiley_face);
 			HTFT_voidDisplayImage(Correct);
 			CorrectFlag=1;
+
 		}
 		else
 		{
+			HLEDMATRIX_voidSetDisplay(sad_face);
 			HTFT_voidDisplayImage(Wrong);
 		}
 		u32 now=SYSTICK_u32GetElapsedTime();
@@ -453,6 +486,7 @@ void GAME1_voidGame1Navigation(void)
 				CorrectCounter++;
 				CorrectFlag=0;
 			}
+
 		}
 		if(LevelCounter==5)
 		{
@@ -460,9 +494,24 @@ void GAME1_voidGame1Navigation(void)
 		}
 		break;
 	default:
-
+		if(timeisupFlag)
+		{
+			HLEDMATRIX_voidSetDisplay(sad_face);
+			HTFT_voidDisplayImage(Wrong);
+			/*Run Next Level*/
+			timeisupFlag=0;
+			time_counter=2000;
+			time_left=9;
+			NextFlag=0;
+			LevelCounter++;
+		}
+		if(LevelCounter==5)
+		{
+			NextFlag=2;
+		}
 		break;
 	}
+
 
 }
 
@@ -485,10 +534,26 @@ static void GAME1_voidScoreMenu(void)
 		break;
 	}
 }
+
+
 void GAME1_voidGameLogic(void)
 {
+	time_counter--;
+	if(time_counter==0)
+	{
+		time_left--;
+		GAME1_voidDrawTime();
+		time_counter=2000;
+	}
+	if(time_left==0)
+	{
+		GAME1_voidDrawTime();
+		timeisupFlag=1;
+	}
 	if(NextFlag==0)
 	{
+		time_counter=2000;
+		time_left=9;
 		GAME1_voidLevelStart();
 	}
 	else if(NextFlag==1)
@@ -510,5 +575,4 @@ void GAME1_voidGameLogic(void)
 	{
 		GAME1_voidScoreMenu();
 	}
-
 }
