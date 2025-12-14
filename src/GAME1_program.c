@@ -38,7 +38,11 @@ static u32 WrongIndex=340;
 static u32 Score_Index=501;
 static u32 Background_Index=582;
 
-u8 smileyFace[9]={255, 255, 219, 255, 126, 189, 195, 255};
+u8 smiley_face[8]={0, 0, 36, 0, 129, 66, 60, 0};
+u8 sad_face[8]={0, 36, 0, 0, 60, 66, 129, 0};
+u16 time_counter=2000;
+u8 timeisupFlag=0;
+u16 time_left=9;
 
 
 static Sprite_t SelectBox=
@@ -105,6 +109,16 @@ static Sprite_t Answer=
 		0,
 		0,
 		0,
+		One
+};
+
+static Sprite_t Time=
+{
+		TIME,
+		109,
+		118,
+		130,
+		159,
 		One
 };
 
@@ -347,6 +361,16 @@ void GAME1_voidDrawAnswers(void)
 
 }
 
+static void GAME1_voidDrawTime(void)
+{
+	Time.Copy_u16ImageArr=TimeBackground;
+	HTFT_voidDrawShapeBackgroundUpdate(Time,Background_Index,Image);
+	GAME1_voidSetNumberSprite(&Time,time_left);
+
+	/*Draw Answers*/
+	HTFT_voidDrawShapeBackgroundUpdate(Time,Background_Index,Image);
+}
+
 void GAME1_voidLevelStart(void)
 {
 
@@ -371,6 +395,10 @@ void GAME1_voidLevelStart(void)
 
 	/*Draw Selection Board*/
 	HTFT_voidDrawShape(SelectBox,Background_Index,Image);
+
+	/*Draw Time*/
+	GAME1_voidDrawTime();
+
 
 	/*Run Navigation*/
 	NextFlag=1;
@@ -455,7 +483,7 @@ void GAME1_voidGame1Navigation(void)
 			HTFT_voidDisplayImage(WrongIndex,Image);
 		}
 		u32 now=SYSTICK_u32GetElapsedTime();
-		if(now-LastPressed>700)
+		if(now-LastPressed>0)
 		{
 			Button_pressed=NONE;
 			/*Run Next Level*/
@@ -474,6 +502,21 @@ void GAME1_voidGame1Navigation(void)
 		}
 		break;
 	default:
+		if(timeisupFlag)
+		{
+			HLEDMATRIX_voidSetDisplay(sad_face);
+			HTFT_voidDisplayImage(WrongIndex,Image);
+			/*Run Next Level*/
+			timeisupFlag=0;
+			time_counter=2000;
+			time_left=9;
+			NextFlag=0;
+			LevelCounter++;
+		}
+		if(LevelCounter==5)
+		{
+			NextFlag=2;
+		}
 
 		break;
 	}
@@ -501,8 +544,22 @@ static void GAME1_voidScoreMenu(void)
 }
 void GAME1_voidGameLogic(void)
 {
+	time_counter--;
+	if(time_counter==0)
+	{
+		time_left--;
+		GAME1_voidDrawTime();
+		time_counter=2000;
+	}
+	if(time_left==0)
+	{
+		GAME1_voidDrawTime();
+		timeisupFlag=1;
+	}
 	if(NextFlag==0)
 	{
+		time_counter=2000;
+		time_left=9;
 		GAME1_voidLevelStart();
 	}
 	else if(NextFlag==1)

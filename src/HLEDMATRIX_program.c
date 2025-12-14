@@ -16,7 +16,7 @@
 #include "HLEDMATRIX_private.h"
 
 
-u8 Display[8]={0, 0, 0, 255, 59, 0, 0, 0};
+u8 Display[8]={0, 0, 0, 0, 0, 0, 0, 0};
 u8 Copy_u8Col=0b00000001;
 u8 ij=0;
 void HLEDMATRIX_voidSetDisplay(u8 Copy_u8Display[])

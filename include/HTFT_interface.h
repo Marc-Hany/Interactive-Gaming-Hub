@@ -22,7 +22,9 @@ typedef enum
 	NUMBER,
 	OPERAND,
 	ANSWER,
+	TIME,
 	SCORE,
+
 }SPRITE_ID;
 
 typedef struct

@@ -59,12 +59,12 @@ void main(void)
 	HTFT_voidCSLow();
 	HTFT_voidInit();
 	MAINMENU_voidInit();
-//	HLEDMATRIX_voidInitSTP();
-//	MTIM2_voidStart_us(500,HLEDMATRIX_OS);
+	HLEDMATRIX_voidInitSTP();
+	MTIM2_voidStart_us(1000,HLEDMATRIX_OS);
 	OS_u8CreateTask(MAINMENU_voidButtonNavigation,5,0,0);
 	OS_u8CreateTask(GAME1_voidGameLogic,1,1,0);
 	OS_voidTaskSuspend(1);
-	OS_voidStartScheduler(100);
+	OS_voidStartScheduler(500);
 	while (1)
 	 {
 
