@@ -12,4 +12,5 @@
 void GAME1_voidLevelStart(void);
 void GAME1_voidGame1Navigation(void);
 void GAME1_voidGameLogic(void);
+void GAME1_voidResetPlayersData(void);
 #endif /* GAME1_INTERFACE_H_ */

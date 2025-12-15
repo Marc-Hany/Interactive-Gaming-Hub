@@ -14,6 +14,7 @@
 #include "OS_interface.h"
 #include "CTRLBUTTONS_interface.h"
 #include "HLEDMATRIX_interface.h"
+#include "HSD_interface.h"
 
 #include <stdlib.h>
 
@@ -30,13 +31,20 @@ extern u16 Image[20480];
 volatile u8 CorrectAnswer=0;
 volatile u8 LevelCounter=0;
 volatile u8 CorrectCounter=0;
-volatile u8 NextFlag=0;
 volatile u8 LastPressed=0;
 static u32 BoardIndex=178;
 static u32 CorrectIndex=259;
 static u32 WrongIndex=340;
 static u32 Score_Index=501;
 static u32 Background_Index=582;
+static u32 Start_Index=663;
+static u32 Listfull_Index=744;
+static u32 Playerx_Index=825;
+
+
+
+static u32 Players_Data_Index=10000;
+
 
 u8 smiley_face[8]={0, 0, 36, 0, 129, 66, 60, 0};
 u8 sad_face[8]={0, 36, 0, 0, 60, 66, 129, 0};
@@ -44,6 +52,26 @@ u16 time_counter=2000;
 u8 timeisupFlag=0;
 u16 time_left=9;
 
+typedef struct
+{
+	u8 Player_Number;
+	u8 Last_Score;
+	u8 Active;
+}PLAYER_t;
+
+PLAYER_t Players[3];
+PLAYER_t CurrentPlayer;
+volatile u8 Listful_Flag=0;
+
+static Sprite_t SelectBox85=
+{
+		SELECTBOX85,
+		22,
+		106,
+		80,
+		95,
+		Select_Box85
+};
 
 static Sprite_t SelectBox=
 {
@@ -63,11 +91,31 @@ typedef enum
 	Answer4=8061,
 	N1=89,
 	OP=58,
-	N2=29
+	N2=29,
+	New_Player=80,
+	Existing_Player=58,
+	Score_Board=36
 
 }POSITION;
 
-static POSITION CurrentPosition=Answer1;
+typedef enum
+{
+	STARTGAME,
+	STARTNAVIGATION,
+	NEWPLAYER,
+	NEWPLAYERNAVIGATION,
+	PLAYERS,
+	SCOREBOARD,
+	NEWLEVEL,
+	NAVIGATION,
+	FINALSCORE,
+	SCORENAVIGATION
+
+}STATE;
+
+volatile STATE NextFlag=STARTGAME;
+
+static POSITION CurrentPosition=New_Player;
 static POSITION CorrectPosition=0;
 static POSITION PositionsArray[4]={Answer1,Answer2,Answer3,Answer4};
 
@@ -115,8 +163,8 @@ static Sprite_t Answer=
 static Sprite_t Time=
 {
 		TIME,
-		109,
-		118,
+		108,
+		117,
 		130,
 		159,
 		One
@@ -132,6 +180,18 @@ static Sprite_t Score=
 		One
 };
 
+static Sprite_t PlayerX=
+{
+		PLAYERX,
+		26,
+		35,
+		79,
+		108,
+		One
+};
+
+
+
 volatile u8 X_start=0;
 volatile u8 Y_start=0;
 
@@ -145,6 +205,7 @@ static void GAME1_voidUpdatePosition(void)
 {
 	CurrentPosition=((SelectBox.X_start+1)*100)+(SelectBox.Y_start+1);
 }
+
 static void GAME1_voidSetNumberSprite(Sprite_t* Copy_uddtNumber,u8 Copy_u8RandomNumber)
 {
 	switch(Copy_u8RandomNumber)
@@ -220,6 +281,95 @@ static void GAME1_voidSetOperandSprite(void)
 	default:
 		break;
 	}
+}
+
+static void GAME1_voidDownloadPlayersData(void)
+{
+	u8 PlayersData[512];
+	HSD_voidReadBlock(Players_Data_Index,PlayersData);
+	u8 i=0;
+	for(u8 j=0;j<3;j++)
+	{
+		Players[j].Player_Number=PlayersData[i++];
+		Players[j].Last_Score=PlayersData[i++];
+		Players[j].Active=PlayersData[i++];
+	}
+}
+
+static void GAME1_voidUploadPlayersData(void)
+{
+	u8 PlayersData[512];
+	u8 i=0;
+	for(u8 j=0;j<3;j++)
+	{
+		PlayersData[i++]=Players[j].Player_Number;
+		PlayersData[i++]=Players[j].Last_Score;
+		PlayersData[i++]=Players[j].Active;
+	}
+	HSD_u8WriteBlock(Players_Data_Index,PlayersData);
+}
+
+void GAME1_voidResetPlayersData(void)
+{
+	u8 PlayersData[512];
+	u8 i=0;
+	for(u8 j=0;j<3;j++)
+	{
+		PlayersData[i++]=0;
+		PlayersData[i++]=0;
+		PlayersData[i++]=0;
+	}
+	Listful_Flag=0;
+	HSD_u8WriteBlock(Players_Data_Index,PlayersData);
+}
+
+static void GAME1_voidNewPlayerNavigation(void)
+{
+	switch (Button_pressed) {
+		case OK:
+			if(Listful_Flag)
+			{
+				NextFlag=STARTGAME;
+			}
+			else NextFlag=NEWLEVEL;
+			Button_pressed=NONE;
+			break;
+		default:
+			break;
+	}
+
+}
+
+static void GAME1_voidNewPlayerMenu(void)
+{
+	if(Players[0].Active && Players[1].Active && Players[2].Active)
+	{
+		/*Player List Full Go back and select an existing player*/
+		HTFT_voidDisplayImage(Listfull_Index,Image);
+		NextFlag=NEWPLAYERNAVIGATION;
+		Listful_Flag=1;
+
+	}
+	else
+	{
+		for(u8 i=0;i<3;i++)
+		{
+			if(Players[i].Active==0)
+			{
+				/*Create New Player*/
+				Players[i].Player_Number=i+1;
+				Players[i].Active=1;
+				CurrentPlayer=Players[i];
+				break;
+			}
+		}
+		GAME1_voidSetNumberSprite(&PlayerX,CurrentPlayer.Player_Number);
+		HTFT_voidDisplayImage(Playerx_Index,Image);
+		HTFT_voidDrawShape(PlayerX,Playerx_Index,Image);
+		NextFlag=NEWPLAYERNAVIGATION;
+	}
+	Button_pressed=NONE;
+
 }
 
 static void GAME1_voidDrawCorrectAnswer(void)
@@ -361,6 +511,65 @@ void GAME1_voidDrawAnswers(void)
 
 }
 
+static void GAME1_voidGameStart(void)
+{
+	HTFT_voidDisplayImage(Start_Index,Image);
+	HTFT_voidDrawShape(SelectBox85,Start_Index,Image);
+	NextFlag=STARTNAVIGATION;
+}
+
+static void GAME1_voidStartNavigation(void)
+{
+	switch (Button_pressed) {
+		case UP:
+			if(CurrentPosition==New_Player)
+			{
+				break;
+			}
+			else
+			{
+				SelectBox85.Y_start+=22;
+				SelectBox85.Y_end+=22;
+				Button_pressed=NONE;
+				HTFT_voidDisplayImage(Start_Index,Image);
+				HTFT_voidDrawShape(SelectBox85,Start_Index,Image);
+				CurrentPosition=SelectBox85.Y_start;
+			}
+			break;
+		case DOWN:
+			if(CurrentPosition==Score_Board)
+			{
+				break;
+			}
+			else
+			{
+				SelectBox85.Y_start-=22;
+				SelectBox85.Y_end-=22;
+				Button_pressed=NONE;
+				HTFT_voidDisplayImage(Start_Index,Image);
+				HTFT_voidDrawShape(SelectBox85,Start_Index,Image);
+				CurrentPosition=SelectBox85.Y_start;
+			}
+			break;
+		case OK:
+			if(CurrentPosition==New_Player)
+			{
+				NextFlag=NEWPLAYER;
+			}
+			else if(CurrentPosition==Existing_Player)
+			{
+				NextFlag=PLAYERS;
+			}
+			else if(CurrentPosition==Score_Board)
+			{
+				NextFlag=SCOREBOARD;
+			}
+			break;
+		default:
+			break;
+	}
+}
+
 static void GAME1_voidDrawTime(void)
 {
 	Time.Copy_u16ImageArr=TimeBackground;
@@ -392,7 +601,7 @@ void GAME1_voidLevelStart(void)
 
 //	/*Draw Answers*/
 	GAME1_voidDrawAnswers();
-
+	CurrentPosition=Answer1;
 	/*Draw Selection Board*/
 	HTFT_voidDrawShape(SelectBox,Background_Index,Image);
 
@@ -401,9 +610,8 @@ void GAME1_voidLevelStart(void)
 
 
 	/*Run Navigation*/
-	NextFlag=1;
+	NextFlag=NAVIGATION;
 }
-
 
 void GAME1_voidGame1Navigation(void)
 {
@@ -474,20 +682,24 @@ void GAME1_voidGame1Navigation(void)
 		if (CurrentPosition==CorrectPosition)
 		{
 			HTFT_voidDisplayImage(CorrectIndex,Image);
+			HLEDMATRIX_voidSetDisplay(smiley_face);
 			CorrectFlag=1;
-
-
 		}
 		else
 		{
 			HTFT_voidDisplayImage(WrongIndex,Image);
+			HLEDMATRIX_voidSetDisplay(sad_face);
 		}
 		u32 now=SYSTICK_u32GetElapsedTime();
-		if(now-LastPressed>0)
+		if(now-LastPressed>400)
 		{
 			Button_pressed=NONE;
 			/*Run Next Level*/
-			NextFlag=0;
+			NextFlag=NEWLEVEL;
+			/*Reset Timer*/
+			timeisupFlag=0;
+			time_counter=2000;
+			time_left=9;
 			LastPressed = now;
 			LevelCounter++;
 			if(CorrectFlag==1)
@@ -498,7 +710,7 @@ void GAME1_voidGame1Navigation(void)
 		}
 		if(LevelCounter==5)
 		{
-			NextFlag=2;
+			NextFlag=FINALSCORE;
 		}
 		break;
 	default:
@@ -510,12 +722,12 @@ void GAME1_voidGame1Navigation(void)
 			timeisupFlag=0;
 			time_counter=2000;
 			time_left=9;
-			NextFlag=0;
+			NextFlag=NEWLEVEL;
 			LevelCounter++;
 		}
 		if(LevelCounter==5)
 		{
-			NextFlag=2;
+			NextFlag=FINALSCORE;
 		}
 
 		break;
@@ -525,61 +737,95 @@ void GAME1_voidGame1Navigation(void)
 
 static void GAME1_voidScoreMenu(void)
 {
+	/*Draw Score Board*/
+	HTFT_voidDisplayImage(Score_Index,Image);
+
+	/*Draw Score at Correct Position*/
+	GAME1_voidSetNumberSprite(&Score,CorrectCounter);
+
+	HTFT_voidDrawShape(Score,Score_Index,Image);
+
+	NextFlag=SCORENAVIGATION;
+
+}
+
+static void GAME1_voidScoreNavigation(void)
+{
 	switch(Button_pressed)
 	{
 	case UP:
 		Button_pressed=NONE;
 		OS_voidTaskSuspend(1);
 		OS_voidTaskResume(0);
+		CurrentPlayer.Last_Score=CorrectCounter;
+		GAME1_voidUploadPlayersData();
 		break;
 	case OK:
-		NextFlag=0;
+		NextFlag=NEWLEVEL;
 		CorrectCounter=0;
 		LevelCounter=0;
 		Button_pressed=NONE;
+		CurrentPlayer.Last_Score=CorrectCounter;
+		GAME1_voidUploadPlayersData();
 		break;
 	default:
 		break;
 	}
 }
+
 void GAME1_voidGameLogic(void)
 {
-	time_counter--;
-	if(time_counter==0)
+	if(NextFlag>=NEWLEVEL && NextFlag<=FINALSCORE)
 	{
-		time_left--;
-		GAME1_voidDrawTime();
-		time_counter=2000;
+		time_counter--;
+		if(time_counter==0)
+		{
+			time_left--;
+			GAME1_voidDrawTime();
+			time_counter=2000;
+		}
+		if(time_left==0)
+		{
+			GAME1_voidDrawTime();
+			timeisupFlag=1;
+		}
 	}
-	if(time_left==0)
+
+	if(NextFlag==STARTGAME)
 	{
-		GAME1_voidDrawTime();
-		timeisupFlag=1;
+		GAME1_voidGameStart();
+		GAME1_voidDownloadPlayersData();
 	}
-	if(NextFlag==0)
+	if(NextFlag==STARTNAVIGATION)
+	{
+		GAME1_voidStartNavigation();
+	}
+	else if(NextFlag==NEWPLAYER)
+	{
+		GAME1_voidNewPlayerMenu();
+	}
+	else if(NextFlag==NEWPLAYERNAVIGATION)
+	{
+		GAME1_voidNewPlayerNavigation();
+	}
+	if(NextFlag==NEWLEVEL)
 	{
 		time_counter=2000;
 		time_left=9;
 		GAME1_voidLevelStart();
 	}
-	else if(NextFlag==1)
+	else if(NextFlag==NAVIGATION)
 	{
 		GAME1_voidGame1Navigation();
 	}
-	else if(NextFlag==2)
-	{
-		/*Draw Score Board*/
-		HTFT_voidDisplayImage(Score_Index,Image);
-
-		/*Draw Score at Correct Position*/
-		GAME1_voidSetNumberSprite(&Score,CorrectCounter);
-
-		HTFT_voidDrawShape(Score,Score_Index,Image);
-		NextFlag=3;
-	}
-	else if(NextFlag==3)
+	else if(NextFlag==FINALSCORE)
 	{
 		GAME1_voidScoreMenu();
 	}
+	else if(NextFlag==SCORENAVIGATION)
+	{
+		GAME1_voidScoreNavigation();
+	}
+
 
 }

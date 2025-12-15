@@ -55,6 +55,7 @@ void main(void)
 	SD_CS_HIGH();
 	MSPI_voidMasterInit();
 	volatile u8 sd_init=HSD_u8Init();
+//	GAME1_voidResetPlayersData();
 	SD_CS_HIGH();
 	HTFT_voidCSLow();
 	HTFT_voidInit();

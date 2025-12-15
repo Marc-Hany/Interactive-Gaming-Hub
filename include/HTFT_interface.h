@@ -24,6 +24,8 @@ typedef enum
 	ANSWER,
 	TIME,
 	SCORE,
+	SELECTBOX85,
+	PLAYERX,
 
 }SPRITE_ID;
 
