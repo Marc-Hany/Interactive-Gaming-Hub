@@ -40,7 +40,7 @@ static u32 Background_Index=582;
 static u32 Start_Index=663;
 static u32 Listfull_Index=744;
 static u32 Playerx_Index=825;
-
+static u32 ExistingPlayers_Index=906;
 
 
 static u32 Players_Data_Index=10000;
@@ -62,6 +62,7 @@ typedef struct
 PLAYER_t Players[3];
 PLAYER_t CurrentPlayer;
 volatile u8 Listful_Flag=0;
+volatile u8 Players_Count=0;
 
 static Sprite_t SelectBox85=
 {
@@ -94,6 +95,9 @@ typedef enum
 	N2=29,
 	New_Player=80,
 	Existing_Player=58,
+	Player1_Position=88,
+	Player2_Position=63,
+	Player3_Position=38,
 	Score_Board=36
 
 }POSITION;
@@ -105,6 +109,7 @@ typedef enum
 	NEWPLAYER,
 	NEWPLAYERNAVIGATION,
 	PLAYERS,
+	PLAYERSNAVIGATION,
 	SCOREBOARD,
 	NEWLEVEL,
 	NAVIGATION,
@@ -187,6 +192,16 @@ static Sprite_t PlayerX=
 		35,
 		79,
 		108,
+		One
+};
+
+static Sprite_t ExistingPlayer=
+{
+		EXISTINGPLAYER,
+		43,
+		87,
+		88,
+		103,
 		One
 };
 
@@ -293,6 +308,10 @@ static void GAME1_voidDownloadPlayersData(void)
 		Players[j].Player_Number=PlayersData[i++];
 		Players[j].Last_Score=PlayersData[i++];
 		Players[j].Active=PlayersData[i++];
+		if(Players[j].Active==1)
+		{
+			Players_Count++;
+		}
 	}
 }
 
@@ -370,6 +389,103 @@ static void GAME1_voidNewPlayerMenu(void)
 	}
 	Button_pressed=NONE;
 
+}
+
+static void GAME1_voidExistingPlayersMenu(void)
+{
+	HTFT_voidDisplayImage(ExistingPlayers_Index,Image);
+	for(u8 i=0;i<3;i++)
+	{
+		if(Players[i].Active==1)
+		{
+			if(i==0)
+			{
+				ExistingPlayer.Copy_u16ImageArr=Player1;
+			}
+			else if(i==1)
+			{
+				ExistingPlayer.Copy_u16ImageArr=Player2;
+			}
+			else if(i==2)
+			{
+				ExistingPlayer.Copy_u16ImageArr=Player3;
+			}
+			HTFT_voidDrawShapeBackgroundUpdate(ExistingPlayer,ExistingPlayers_Index,Image);
+		}
+		ExistingPlayer.Y_end-=25;
+		ExistingPlayer.Y_start-=25;
+	}
+	SelectBox85.X_start=24;
+	SelectBox85.X_end=108;
+	SelectBox85.Y_start=88;
+	SelectBox85.Y_end=103;
+	HTFT_voidDrawShape(SelectBox85,Background_Index,Image);
+	CurrentPosition=Player1_Position;
+	NextFlag=PLAYERSNAVIGATION;
+}
+
+static void GAME1_voidExistingPlayersNavigation(void)
+{
+	switch (Button_pressed) {
+		case UP:
+			if(CurrentPosition==Player1_Position)
+			{
+				break;
+			}
+			else
+			{
+				SelectBox85.Y_start+=25;
+				SelectBox85.Y_end+=25;
+				Button_pressed=NONE;
+				HTFT_voidDisplayImage(Background_Index,Image);
+				HTFT_voidDrawShape(SelectBox85,Background_Index,Image);
+				CurrentPosition=SelectBox85.Y_start;
+			}
+			break;
+		case DOWN:
+			if(Players_Count==3 && CurrentPosition==Player3_Position)
+			{
+				break;
+			}
+			else if(Players_Count==2 && CurrentPosition==Player2_Position)
+			{
+				break;
+			}
+			else if(Players_Count==1 && CurrentPosition==Player1_Position)
+			{
+				break;
+			}
+			else
+			{
+				SelectBox85.Y_start-=25;
+				SelectBox85.Y_end-=25;
+				Button_pressed=NONE;
+				HTFT_voidDisplayImage(Background_Index,Image);
+				HTFT_voidDrawShape(SelectBox85,Background_Index,Image);
+				CurrentPosition=SelectBox85.Y_start;
+			}
+			break;
+		case OK:
+			if(CurrentPosition==Player1_Position)
+			{
+				CurrentPlayer=Players[0];
+				NextFlag=NEWLEVEL;
+			}
+			else if(CurrentPosition==Player2_Position)
+			{
+				CurrentPlayer=Players[1];
+				NextFlag=NEWLEVEL;
+			}
+			else if(CurrentPosition==Player3_Position)
+			{
+				CurrentPlayer=Players[2];
+				NextFlag=NEWLEVEL;
+			}
+			Button_pressed=NONE;
+			break;
+		default:
+			break;
+	}
 }
 
 static void GAME1_voidDrawCorrectAnswer(void)
@@ -564,6 +680,7 @@ static void GAME1_voidStartNavigation(void)
 			{
 				NextFlag=SCOREBOARD;
 			}
+			Button_pressed=NONE;
 			break;
 		default:
 			break;
@@ -796,7 +913,7 @@ void GAME1_voidGameLogic(void)
 		GAME1_voidGameStart();
 		GAME1_voidDownloadPlayersData();
 	}
-	if(NextFlag==STARTNAVIGATION)
+	else if(NextFlag==STARTNAVIGATION)
 	{
 		GAME1_voidStartNavigation();
 	}
@@ -808,7 +925,15 @@ void GAME1_voidGameLogic(void)
 	{
 		GAME1_voidNewPlayerNavigation();
 	}
-	if(NextFlag==NEWLEVEL)
+	else if(NextFlag==PLAYERS)
+	{
+		GAME1_voidExistingPlayersMenu();
+	}
+	else if(NextFlag==PLAYERSNAVIGATION)
+	{
+		GAME1_voidExistingPlayersNavigation();
+	}
+	else if(NextFlag==NEWLEVEL)
 	{
 		time_counter=2000;
 		time_left=9;
