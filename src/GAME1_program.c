@@ -41,6 +41,8 @@ static u32 Start_Index=663;
 static u32 Listfull_Index=744;
 static u32 Playerx_Index=825;
 static u32 ExistingPlayers_Index=906;
+static u32 NoExistingPlayers_Index=987;
+static u32 Scoreboard_Index=1068;
 
 
 static u32 Players_Data_Index=10000;
@@ -110,7 +112,9 @@ typedef enum
 	NEWPLAYERNAVIGATION,
 	PLAYERS,
 	PLAYERSNAVIGATION,
+	NOPLAYERSNAVIGATION,
 	SCOREBOARD,
+	SCOREBOARDNAVIGATION,
 	NEWLEVEL,
 	NAVIGATION,
 	FINALSCORE,
@@ -202,6 +206,16 @@ static Sprite_t ExistingPlayer=
 		87,
 		88,
 		103,
+		One
+};
+
+static Sprite_t ScoreBoard=
+{
+		SCOREBAORDID,
+		22,
+		31,
+		92,
+		121,
 		One
 };
 
@@ -321,6 +335,10 @@ static void GAME1_voidUploadPlayersData(void)
 	u8 i=0;
 	for(u8 j=0;j<3;j++)
 	{
+		if(Players[j].Player_Number==CurrentPlayer.Player_Number)
+		{
+			Players[j].Last_Score=CurrentPlayer.Last_Score;
+		}
 		PlayersData[i++]=Players[j].Player_Number;
 		PlayersData[i++]=Players[j].Last_Score;
 		PlayersData[i++]=Players[j].Active;
@@ -393,35 +411,46 @@ static void GAME1_voidNewPlayerMenu(void)
 
 static void GAME1_voidExistingPlayersMenu(void)
 {
-	HTFT_voidDisplayImage(ExistingPlayers_Index,Image);
-	for(u8 i=0;i<3;i++)
+	if(Players[0].Active==0 && Players[1].Active==0 && Players[2].Active==0)
 	{
-		if(Players[i].Active==1)
-		{
-			if(i==0)
-			{
-				ExistingPlayer.Copy_u16ImageArr=Player1;
-			}
-			else if(i==1)
-			{
-				ExistingPlayer.Copy_u16ImageArr=Player2;
-			}
-			else if(i==2)
-			{
-				ExistingPlayer.Copy_u16ImageArr=Player3;
-			}
-			HTFT_voidDrawShapeBackgroundUpdate(ExistingPlayer,ExistingPlayers_Index,Image);
-		}
-		ExistingPlayer.Y_end-=25;
-		ExistingPlayer.Y_start-=25;
+		HTFT_voidDisplayImage(NoExistingPlayers_Index,Image);
+		NextFlag=NOPLAYERSNAVIGATION;
 	}
-	SelectBox85.X_start=24;
-	SelectBox85.X_end=108;
-	SelectBox85.Y_start=88;
-	SelectBox85.Y_end=103;
-	HTFT_voidDrawShape(SelectBox85,Background_Index,Image);
-	CurrentPosition=Player1_Position;
-	NextFlag=PLAYERSNAVIGATION;
+	else
+	{
+		HTFT_voidDisplayImage(ExistingPlayers_Index,Image);
+		NextFlag=PLAYERSNAVIGATION;
+		for(u8 i=0;i<3;i++)
+		{
+			if(Players[i].Active==1)
+			{
+				if(i==0)
+				{
+					ExistingPlayer.Copy_u16ImageArr=Player1;
+				}
+				else if(i==1)
+				{
+					ExistingPlayer.Copy_u16ImageArr=Player2;
+				}
+				else if(i==2)
+				{
+					ExistingPlayer.Copy_u16ImageArr=Player3;
+				}
+				HTFT_voidDrawShapeBackgroundUpdate(ExistingPlayer,ExistingPlayers_Index,Image);
+			}
+			ExistingPlayer.Y_end-=25;
+			ExistingPlayer.Y_start-=25;
+		}
+		SelectBox85.X_start=24;
+		SelectBox85.X_end=108;
+		SelectBox85.Y_start=88;
+		SelectBox85.Y_end=103;
+		HTFT_voidDrawShape(SelectBox85,Background_Index,Image);
+		CurrentPosition=Player1_Position;
+	}
+
+
+
 }
 
 static void GAME1_voidExistingPlayersNavigation(void)
@@ -481,6 +510,45 @@ static void GAME1_voidExistingPlayersNavigation(void)
 				CurrentPlayer=Players[2];
 				NextFlag=NEWLEVEL;
 			}
+			Button_pressed=NONE;
+			break;
+		default:
+			break;
+	}
+}
+
+static void GAME1_voidNoExistingPlayersNavigation(void)
+{
+	switch (Button_pressed) {
+		case OK:
+			NextFlag=NEWPLAYER;
+			Button_pressed=NONE;
+			break;
+		default:
+			break;
+	}
+}
+
+static void GAME1_voidScoreboard(void)
+{
+	ScoreBoard.Y_start=92;
+	ScoreBoard.Y_end=121;
+	HTFT_voidDisplayImage(Scoreboard_Index,Image);
+	for(u8 i=0;i<3;i++)
+	{
+		GAME1_voidSetNumberSprite(&ScoreBoard,Players[i].Last_Score);
+		HTFT_voidDrawShapeBackgroundUpdate(ScoreBoard,Scoreboard_Index,Image);
+		ScoreBoard.Y_start-=26;
+		ScoreBoard.Y_end-=26;
+	}
+	NextFlag=SCOREBOARDNAVIGATION;
+}
+
+static void GAME1_voidScoreboardNavigation(void)
+{
+	switch (Button_pressed) {
+		case OK:
+			NextFlag=STARTGAME;
 			Button_pressed=NONE;
 			break;
 		default:
@@ -875,7 +943,7 @@ static void GAME1_voidScoreNavigation(void)
 		OS_voidTaskSuspend(1);
 		OS_voidTaskResume(0);
 		CurrentPlayer.Last_Score=CorrectCounter;
-		GAME1_voidUploadPlayersData();
+//		GAME1_voidUploadPlayersData();
 		break;
 	case OK:
 		NextFlag=NEWLEVEL;
@@ -883,7 +951,7 @@ static void GAME1_voidScoreNavigation(void)
 		LevelCounter=0;
 		Button_pressed=NONE;
 		CurrentPlayer.Last_Score=CorrectCounter;
-		GAME1_voidUploadPlayersData();
+//		GAME1_voidUploadPlayersData();
 		break;
 	default:
 		break;
@@ -932,6 +1000,18 @@ void GAME1_voidGameLogic(void)
 	else if(NextFlag==PLAYERSNAVIGATION)
 	{
 		GAME1_voidExistingPlayersNavigation();
+	}
+	else if(NextFlag==NOPLAYERSNAVIGATION)
+	{
+		GAME1_voidNoExistingPlayersNavigation();
+	}
+	else if(NextFlag==SCOREBOARD)
+	{
+		GAME1_voidScoreboard();
+	}
+	else if(NextFlag==SCOREBOARDNAVIGATION)
+	{
+		GAME1_voidScoreboardNavigation();
 	}
 	else if(NextFlag==NEWLEVEL)
 	{
