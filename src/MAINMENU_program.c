@@ -18,12 +18,13 @@
 static u8 UnderConst=0;
 extern u8 Button_pressed;
 
+/*Images Index on SD Card*/
 static u32 StartScreenIndex=16;
 static u32 GameScreenIndex=97;
 
+/*Select Box*/
 static Sprite_t SelectBox=
 {
-		SELECTBOX,
 		48,
 		82,
 		15,
@@ -31,6 +32,7 @@ static Sprite_t SelectBox=
 		Select_Box
 };
 
+/*Games Positions*/
 typedef enum
 {
 	Game1=15,
@@ -41,6 +43,7 @@ typedef enum
 
 static POSITION CurrentPosition=Game1;
 
+/*Update Select Box Position*/
 void update_position(void)
 {
 	if(SelectBox.Y_start==Game1)
@@ -57,12 +60,14 @@ void update_position(void)
 	}
 }
 
+/*Initialize Main Menu*/
 void MAINMENU_voidInit(void)
 {
 	HTFT_voidDisplayImage(StartScreenIndex,Image);
 	HTFT_voidDrawShape(SelectBox,StartScreenIndex,Image);
 }
 
+/*Main Menu Control*/
 void MAINMENU_voidButtonNavigation(void)
 {
 	switch(Button_pressed)

@@ -12,6 +12,7 @@
 #include "SYSTICK_interface.h"
 #include "SYSTICK_private.h"
 
+static u8 Flag=0;
 static void(*Global_pvFuncPtr)(void)=NULL;
 
 void SYSTCICK_voidInit(void)
@@ -72,10 +73,22 @@ void SYSTICK_SetCallback(void(*Copy_pvFunc)(void),u32 Copy_u32Periodicity_us)
 	SYSTICK_voidStart(Copy_u32Periodicity_us*2);
 }
 
+void SYSTICK_SetCallbackSingle(void(*Copy_pvFunc)(void),u32 Copy_u32Periodicity_us)
+{
+	Flag=1;
+	Global_pvFuncPtr=Copy_pvFunc;
+	SYSTICK_voidStart(Copy_u32Periodicity_us*2);
+}
+
 void SysTick_Handler(void)
 {
 	if(Global_pvFuncPtr!=NULL)
 	{
 		Global_pvFuncPtr();
 	}
+	if(Flag)
+	{
+		SYSTICK_voidConfigInterruptState(INT_DISABLE);
+	}
+	Flag=0;
 }

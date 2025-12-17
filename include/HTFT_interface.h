@@ -15,25 +15,9 @@
 
 #define TRANSPARENT	0xfd7f
 
-typedef enum
-{
-	SELECTBOX=0,
-	SELECTBOX30,
-	NUMBER,
-	OPERAND,
-	ANSWER,
-	TIME,
-	SCORE,
-	SELECTBOX85,
-	PLAYERX,
-	EXISTINGPLAYER,
-	SCOREBAORDID,
-
-}SPRITE_ID;
 
 typedef struct
 {
-	SPRITE_ID Sprite_Id;
 	u8 X_start;
 	u8 X_end;
 	u8 Y_start;

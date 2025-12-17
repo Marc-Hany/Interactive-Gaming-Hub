@@ -15,24 +15,28 @@
 #include "CTRLBUTTONS_interface.h"
 #include "HLEDMATRIX_interface.h"
 #include "HSD_interface.h"
+#include "MUSART_interface.h"
 
 #include <stdlib.h>
 
-extern u8 Button_pressed;
-extern u8 randomN1;	//Number 1 (0-9)
-extern u8 randomN2;	//Number 2 (0-9)
-extern u8 randomOp;	//Operand (0-3)
-extern u8 randomAp;	//Answer Position (0-3)
+/*Extern Variables*/
+extern u8 Button_pressed;	//Control Button
+extern u8 randomN1;			//Number 1 (0-9)
+extern u8 randomN2;			//Number 2 (0-9)
+extern u8 randomOp;			//Operand (0-3)
+extern u8 randomAp;			//Answer Position (0-3)
 extern u8 randomAnswer1;	//Answer (0-99)
 extern u8 randomAnswer2;	//Answer (0-99)
 extern u8 randomAnswer3;	//Answer (0-99)
-extern u16 Image[20480];
+extern u16 Image[20480];	//Image Buffer
 
-volatile u8 CorrectAnswer=0;
-volatile u8 LevelCounter=0;
-volatile u8 CorrectCounter=0;
+
+volatile u8 CorrectAnswer=0;	//Random Correct Answer
+volatile u8 LevelCounter=0;		//Max 5 levels
+volatile u8 CorrectCounter=0;	//Counter of corect answers
 volatile u8 LastPressed=0;
 
+/*Images Index on SD Card*/
 static u32 BoardIndex=178;
 static u32 CorrectIndex=259;
 static u32 WrongIndex=340;
@@ -45,16 +49,19 @@ static u32 ExistingPlayers_Index=906;
 static u32 NoExistingPlayers_Index=987;
 static u32 Scoreboard_Index=1068;
 
-
+/*Index of Players data on SD card*/
 static u32 Players_Data_Index=10000;
 
-
+/*LED Matrix*/
 u8 smiley_face[8]={0, 0, 36, 0, 129, 66, 60, 0};
 u8 sad_face[8]={0, 36, 0, 0, 60, 66, 129, 0};
+
+/*Level Timer*/
 u16 time_counter=2000;
 u8 timeisupFlag=0;
 u16 time_left=9;
 
+/*Players Data*/
 typedef struct
 {
 	u8 Player_Number;
@@ -67,26 +74,7 @@ PLAYER_t CurrentPlayer;
 volatile u8 Listful_Flag=0;
 volatile u8 Players_Count=0;
 
-static Sprite_t SelectBox85=
-{
-		SELECTBOX85,
-		22,
-		106,
-		80,
-		95,
-		Select_Box85
-};
-
-static Sprite_t SelectBox=
-{
-		SELECTBOX30,
-		19,
-		48,
-		15,
-		44,
-		Select_Box30
-};
-
+/*Positions*/
 typedef enum
 {
 	Answer1=2016,
@@ -104,7 +92,11 @@ typedef enum
 	Score_Board=36
 
 }POSITION;
+static POSITION CurrentPosition=New_Player;
+static POSITION CorrectPosition=0;
+static POSITION PositionsArray[4]={Answer1,Answer2,Answer3,Answer4};
 
+/*Game States*/
 typedef enum
 {
 	STARTGAME,
@@ -119,20 +111,33 @@ typedef enum
 	NEWLEVEL,
 	NAVIGATION,
 	FINALSCORE,
-	SCORENAVIGATION
+	SCORENAVIGATION,
 
 }STATE;
-
 volatile STATE NextFlag=STARTGAME;
 
-static POSITION CurrentPosition=New_Player;
-static POSITION CorrectPosition=0;
-static POSITION PositionsArray[4]={Answer1,Answer2,Answer3,Answer4};
 
+/*Sprites*/
+static Sprite_t SelectBox85=
+{
+		22,
+		106,
+		80,
+		95,
+		Select_Box85
+};
+
+static Sprite_t SelectBox=
+{
+		19,
+		48,
+		15,
+		44,
+		Select_Box30
+};
 
 static Sprite_t Number1=
 {
-		NUMBER,
 		N1,
 		N1+9,
 		104,
@@ -142,7 +147,6 @@ static Sprite_t Number1=
 
 static Sprite_t Number2=
 {
-		NUMBER,
 		N2,
 		N2+9,
 		104,
@@ -152,7 +156,6 @@ static Sprite_t Number2=
 
 static Sprite_t Operand=
 {
-		OPERAND,
 		OP,
 		67,
 		104,
@@ -162,7 +165,6 @@ static Sprite_t Operand=
 
 static Sprite_t Answer=
 {
-		ANSWER,
 		0,
 		0,
 		0,
@@ -172,7 +174,6 @@ static Sprite_t Answer=
 
 static Sprite_t Time=
 {
-		TIME,
 		108,
 		117,
 		130,
@@ -182,7 +183,6 @@ static Sprite_t Time=
 
 static Sprite_t Score=
 {
-		SCORE,
 		66,
 		75,
 		76,
@@ -192,7 +192,6 @@ static Sprite_t Score=
 
 static Sprite_t PlayerX=
 {
-		PLAYERX,
 		26,
 		35,
 		79,
@@ -202,7 +201,6 @@ static Sprite_t PlayerX=
 
 static Sprite_t ExistingPlayer=
 {
-		EXISTINGPLAYER,
 		43,
 		87,
 		88,
@@ -212,7 +210,6 @@ static Sprite_t ExistingPlayer=
 
 static Sprite_t ScoreBoard=
 {
-		SCOREBAORDID,
 		22,
 		31,
 		92,
@@ -221,21 +218,17 @@ static Sprite_t ScoreBoard=
 };
 
 
-
+/*Start Position*/
 volatile u8 X_start=0;
 volatile u8 Y_start=0;
 
-static void GAME1_voidUpdateXY(void)
-{
-	X_start=CurrentPosition/100;
-	Y_start=CurrentPosition%100;
-}
-
+/*Update Current Position*/
 static void GAME1_voidUpdatePosition(void)
 {
 	CurrentPosition=((SelectBox.X_start+1)*100)+(SelectBox.Y_start+1);
 }
 
+/*Select Sprite Corresponding to Number*/
 static void GAME1_voidSetNumberSprite(Sprite_t* Copy_uddtNumber,u8 Copy_u8RandomNumber)
 {
 	switch(Copy_u8RandomNumber)
@@ -275,6 +268,7 @@ static void GAME1_voidSetNumberSprite(Sprite_t* Copy_uddtNumber,u8 Copy_u8Random
 	}
 }
 
+/*Select Sprite Corresponding to O*/
 static void GAME1_voidSetOperandSprite(void)
 {
 	if(randomN1<randomN2 && (randomOp==1 || randomOp==3))
@@ -313,6 +307,24 @@ static void GAME1_voidSetOperandSprite(void)
 	}
 }
 
+/*Send Players Data Via UART*/
+void GAME1_voidSendPlayersData(void)
+{
+	MUSART_voidSendChars("{\"players\":[");
+    for (u8 i = 0; i < Players_Count; i++) {
+    	MUSART_voidSendChars("{\"num\":");
+    	MUSART_voidTransmit((Players[i].Player_Number)+'0');
+        MUSART_voidSendChars(",\"score\":");
+        MUSART_voidTransmit((Players[i].Last_Score)+'0');
+        MUSART_voidSendChars("}");
+        if (i < Players_Count - 1) {
+            MUSART_voidTransmit(',');
+        }
+    }
+    MUSART_voidSendChars("]}\n"); // \n marks end of message
+}
+
+/*Get Players Data from SD Card*/
 static void GAME1_voidDownloadPlayersData(void)
 {
 	u8 PlayersData[512];
@@ -328,8 +340,13 @@ static void GAME1_voidDownloadPlayersData(void)
 			Players_Count++;
 		}
 	}
+
+	GAME1_voidSendPlayersData();
+
+
 }
 
+/*Upload Players data on SD Card*/
 static void GAME1_voidUploadPlayersData(void)
 {
 	for(u8 i=0;i<3;i++)
@@ -344,8 +361,11 @@ static void GAME1_voidUploadPlayersData(void)
 	HSD_u8WriteBlock(Players_Data_Index,Players);
 	SD_CS_HIGH();
 	HTFT_voidCSLow();
+	GAME1_voidSendPlayersData();
+	Players_Count=0;
 }
 
+/*Reset Players List*/
 void GAME1_voidResetPlayersData(void)
 {
 	u8 PlayersData[512];
@@ -360,23 +380,7 @@ void GAME1_voidResetPlayersData(void)
 	HSD_u8WriteBlock(Players_Data_Index,PlayersData);
 }
 
-static void GAME1_voidNewPlayerNavigation(void)
-{
-	switch (Button_pressed) {
-		case OK:
-			if(Listful_Flag)
-			{
-				NextFlag=STARTGAME;
-			}
-			else NextFlag=NEWLEVEL;
-			Button_pressed=NONE;
-			break;
-		default:
-			break;
-	}
-
-}
-
+/*Add New Player*/
 static void GAME1_voidNewPlayerMenu(void)
 {
 	if(Players[0].Active && Players[1].Active && Players[2].Active)
@@ -409,6 +413,24 @@ static void GAME1_voidNewPlayerMenu(void)
 
 }
 
+static void GAME1_voidNewPlayerNavigation(void)
+{
+	switch (Button_pressed) {
+		case OK:
+			if(Listful_Flag)
+			{
+				NextFlag=STARTGAME;
+			}
+			else NextFlag=NEWLEVEL;
+			Button_pressed=NONE;
+			break;
+		default:
+			break;
+	}
+
+}
+
+/*Choose Existing Player*/
 static void GAME1_voidExistingPlayersMenu(void)
 {
 	if(Players[0].Active==0 && Players[1].Active==0 && Players[2].Active==0)
@@ -529,6 +551,7 @@ static void GAME1_voidNoExistingPlayersNavigation(void)
 	}
 }
 
+/*ScoreBoard*/
 static void GAME1_voidScoreboard(void)
 {
 	ScoreBoard.Y_start=92;
@@ -556,6 +579,7 @@ static void GAME1_voidScoreboardNavigation(void)
 	}
 }
 
+/*Draw Answers in their respective places*/
 static void GAME1_voidDrawCorrectAnswer(void)
 {
 	/*Get Position*/
@@ -695,6 +719,7 @@ void GAME1_voidDrawAnswers(void)
 
 }
 
+/*Start Game*/
 static void GAME1_voidGameStart(void)
 {
 	HTFT_voidDisplayImage(Start_Index,Image);
@@ -755,6 +780,7 @@ static void GAME1_voidStartNavigation(void)
 	}
 }
 
+/*Level Time*/
 static void GAME1_voidDrawTime(void)
 {
 	Time.Copy_u16ImageArr=TimeBackground;
@@ -765,6 +791,7 @@ static void GAME1_voidDrawTime(void)
 	HTFT_voidDrawShapeBackgroundUpdate(Time,Background_Index,Image);
 }
 
+/*Start Level*/
 void GAME1_voidLevelStart(void)
 {
 
@@ -776,17 +803,15 @@ void GAME1_voidLevelStart(void)
 	GAME1_voidSetNumberSprite(&Number1,randomN1);
 	GAME1_voidSetNumberSprite(&Number2,randomN2);
 	GAME1_voidSetOperandSprite();
-//	HTFT_voidDrawShape(Number1,BoardIndex,Image);
-//	HTFT_voidDrawShape(Number2,BoardIndex,Image);
-//	HTFT_voidDrawShape(Operand,BoardIndex,Image);
 	HTFT_voidDrawShapeBackgroundUpdate(Number1,BoardIndex,Image);	//Number 1
 	HTFT_voidDrawShapeBackgroundUpdate(Number2,BoardIndex,Image);	//Number 2
 	HTFT_voidDrawShapeBackgroundUpdate(Operand,BoardIndex,Image);	//Operand
 
 
-//	/*Draw Answers*/
+	/*Draw Answers*/
 	GAME1_voidDrawAnswers();
 	CurrentPosition=Answer1;
+
 	/*Draw Selection Board*/
 	HTFT_voidDrawShape(SelectBox,Background_Index,Image);
 
@@ -798,6 +823,7 @@ void GAME1_voidLevelStart(void)
 	NextFlag=NAVIGATION;
 }
 
+/*Game Control*/
 void GAME1_voidGame1Navigation(void)
 {
 	u8 CorrectFlag=0;
@@ -876,7 +902,7 @@ void GAME1_voidGame1Navigation(void)
 			HLEDMATRIX_voidSetDisplay(sad_face);
 		}
 		u32 now=SYSTICK_u32GetElapsedTime();
-		if(now-LastPressed>400)
+		if(now-LastPressed>200)
 		{
 			Button_pressed=NONE;
 			/*Run Next Level*/
@@ -920,6 +946,7 @@ void GAME1_voidGame1Navigation(void)
 
 }
 
+/*Score Menu*/
 static void GAME1_voidScoreMenu(void)
 {
 	/*Draw Score Board*/
@@ -934,6 +961,7 @@ static void GAME1_voidScoreMenu(void)
 	CurrentPlayer.Last_Score=CorrectCounter;
 	HLEDMATRIX_voidResetDisplay();
 	GAME1_voidUploadPlayersData();
+
 
 }
 
@@ -952,7 +980,6 @@ static void GAME1_voidScoreNavigation(void)
 		time_left=9;
 		timeisupFlag=0;
 		Listful_Flag=0;
-		Players_Count=0;
 		SelectBox85.X_start=22;
 		SelectBox85.X_end=106;
 		SelectBox85.Y_start=80;
@@ -971,6 +998,7 @@ static void GAME1_voidScoreNavigation(void)
 	}
 }
 
+/*Game State Machine and Logic*/
 void GAME1_voidGameLogic(void)
 {
 	if(NextFlag>=NEWLEVEL && NextFlag<=FINALSCORE)
@@ -1044,6 +1072,5 @@ void GAME1_voidGameLogic(void)
 	{
 		GAME1_voidScoreNavigation();
 	}
-
 
 }
