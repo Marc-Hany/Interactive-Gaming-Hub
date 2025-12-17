@@ -19,7 +19,7 @@ void HLEDMATRIX_voidOutputSTP(u8 Copy_u8SerialPort,u8 Copy_u8SerialPin,
 						u8 Copy_u8ClkPort,u8 Copy_u8ClkPin,
 						u8 Copy_u8LatchPort,u8 Copy_u8LatchPin,
 						u8 Copy_u8Row,u8 Copy_u8Col);
-
+void HLEDMATRIX_voidResetDisplay(void);
 void HLEDMATRIX_OS(void);
 
 #endif /* HLEDMATRIX_INTERFACE_H_ */

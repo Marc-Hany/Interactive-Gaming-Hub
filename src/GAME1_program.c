@@ -32,6 +32,7 @@ volatile u8 CorrectAnswer=0;
 volatile u8 LevelCounter=0;
 volatile u8 CorrectCounter=0;
 volatile u8 LastPressed=0;
+
 static u32 BoardIndex=178;
 static u32 CorrectIndex=259;
 static u32 WrongIndex=340;
@@ -331,19 +332,18 @@ static void GAME1_voidDownloadPlayersData(void)
 
 static void GAME1_voidUploadPlayersData(void)
 {
-	u8 PlayersData[512];
-	u8 i=0;
-	for(u8 j=0;j<3;j++)
+	for(u8 i=0;i<3;i++)
 	{
-		if(Players[j].Player_Number==CurrentPlayer.Player_Number)
+		if(Players[i].Player_Number==CurrentPlayer.Player_Number)
 		{
-			Players[j].Last_Score=CurrentPlayer.Last_Score;
+			Players[i].Last_Score=CurrentPlayer.Last_Score;
 		}
-		PlayersData[i++]=Players[j].Player_Number;
-		PlayersData[i++]=Players[j].Last_Score;
-		PlayersData[i++]=Players[j].Active;
 	}
-	HSD_u8WriteBlock(Players_Data_Index,PlayersData);
+	HTFT_voidCSHigh();
+	SD_CS_LOW();
+	HSD_u8WriteBlock(Players_Data_Index,Players);
+	SD_CS_HIGH();
+	HTFT_voidCSLow();
 }
 
 void GAME1_voidResetPlayersData(void)
@@ -931,6 +931,9 @@ static void GAME1_voidScoreMenu(void)
 	HTFT_voidDrawShape(Score,Score_Index,Image);
 
 	NextFlag=SCORENAVIGATION;
+	CurrentPlayer.Last_Score=CorrectCounter;
+	HLEDMATRIX_voidResetDisplay();
+	GAME1_voidUploadPlayersData();
 
 }
 
@@ -942,16 +945,26 @@ static void GAME1_voidScoreNavigation(void)
 		Button_pressed=NONE;
 		OS_voidTaskSuspend(1);
 		OS_voidTaskResume(0);
-		CurrentPlayer.Last_Score=CorrectCounter;
-//		GAME1_voidUploadPlayersData();
+		NextFlag=STARTGAME;
+		LevelCounter=0;
+		CorrectCounter=0;
+		time_counter=2000;
+		time_left=9;
+		timeisupFlag=0;
+		Listful_Flag=0;
+		Players_Count=0;
+		SelectBox85.X_start=22;
+		SelectBox85.X_end=106;
+		SelectBox85.Y_start=80;
+		SelectBox85.Y_end=95;
+		HLEDMATRIX_voidResetDisplay();
 		break;
 	case OK:
 		NextFlag=NEWLEVEL;
 		CorrectCounter=0;
 		LevelCounter=0;
 		Button_pressed=NONE;
-		CurrentPlayer.Last_Score=CorrectCounter;
-//		GAME1_voidUploadPlayersData();
+		HLEDMATRIX_voidResetDisplay();
 		break;
 	default:
 		break;
