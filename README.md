@@ -117,3 +117,4 @@ The SD card is used to store game scores and game graphics.
 
 Wi-Fi connectivity is used to send the final game score after completion as well as allow parental control over the game hub. They can reset game pkayers and Block/Unblock the games remotely.
 This demonstrates external communication and IoT capability while keeping the implementation simple and reliable.
+Website can be accessed at: http://gamehubtest.atwebpages.com/
