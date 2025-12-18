@@ -4,6 +4,7 @@
   #include <ArduinoJson.h>
   #define STM_RX 16
   #define STM_TX 17
+  #define LED_PIN 2
 
   HardwareSerial STMSerial(2);
 
@@ -30,6 +31,8 @@
       Serial.println();
       Serial.print("Connected, IP: ");
       Serial.println(WiFi.localIP());
+      // Turn the LED on
+      digitalWrite(LED_PIN, HIGH);
   }
 
   void sendToServer(const String& data)
@@ -85,7 +88,8 @@
       Serial.begin(9600);
       STMSerial.begin(9600, SERIAL_8N1, STM_RX, STM_TX);
       while (STMSerial.available()) STMSerial.read(); // flush old bytes
-      while (STMSerial.available()) STMSerial.read(); // flush old bytes
+      // Initialize digital pin 2 as an output
+      pinMode(LED_PIN, OUTPUT);
       Serial.println("ESP32 ready");
       initWiFi();
   }
