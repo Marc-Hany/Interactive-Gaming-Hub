@@ -83,7 +83,7 @@ This structure improves readability, maintainability, and scalability.
 The following flowchart illustrates the overall system behavior of the Interactive Gaming Hub,
 including initialization, game selection, player management, Wi-Fi control, and game execution flow.
 
-![System Flowchart](assets/system_flowchart.jpg)
+![System Flowchart](assets/Game Hub Flowchart.png)
 
 # Math Quiz Game
 The Math Quiz is an educational game designed to test basic arithmetic skills.
